@@ -1,0 +1,114 @@
+{
+  "users": [
+    {
+      "user_id": "clerk_abc123",
+      "name": "Alice",
+      "email": "alice@example.com",
+      "avatar": "https://cdn.clerk.com/user/alice/avatar.png",
+      "push_token": "ExponentPushToken[xxxxxxxxxxxxxx]",
+      "created_at": "2025-07-22T11:59:00Z",
+      "updated_at": "2025-07-22T12:30:00Z"
+    },
+    {
+      "user_id": "clerk_xyz789",
+      "name": "Bob",
+      "email": "bob@example.com",
+      "avatar": "https://cdn.clerk.com/user/bob/avatar.png",
+      "push_token": "ExponentPushToken[yyyyyyyyyyyyyy]",
+      "created_at": "2025-07-22T12:03:00Z",
+      "updated_at": "2025-07-22T12:35:00Z"
+    }
+  ],
+  "chat_rooms": [
+    {
+      "room_id": "room_1",
+      "name": "Project Alpha",
+      "created_by": "clerk_abc123",
+      "created_at": "2025-07-22T12:00:00Z"
+    }
+  ],
+  "chat_room_members": [
+    {
+      "room_id": "room_1",
+      "user_id": "clerk_abc123",
+      "invited_by": "clerk_abc123",
+      "joined_at": "2025-07-22T12:05:00Z",
+      "role": "owner"
+    },
+    {
+      "room_id": "room_1",
+      "user_id": "clerk_xyz789",
+      "invited_by": "clerk_abc123",
+      "joined_at": "2025-07-22T12:10:00Z",
+      "role": "member"
+    }
+  ],
+  "messages": [
+    {
+      "message_id": "msg_1",
+      "room_id": "room_1",
+      "sender_id": "clerk_abc123",
+      "content": "Hey Bob, are you there?",
+      "sent_at": "2025-07-22T12:15:00Z"
+    },
+    {
+      "message_id": "msg_2",
+      "room_id": "room_1",
+      "sender_id": "clerk_xyz789",
+      "content": "Yes, I'm here!",
+      "sent_at": "2025-07-22T12:16:00Z"
+    }
+  ],
+  "message_reads": [
+    {
+      "message_id": "msg_1",
+      "user_id": "clerk_abc123",
+      "read_at": "2025-07-22T12:15:05Z"
+    },
+    {
+      "message_id": "msg_1",
+      "user_id": "clerk_xyz789",
+      "read_at": "2025-07-22T12:15:30Z"
+    },
+    {
+      "message_id": "msg_2",
+      "user_id": "clerk_abc123",
+      "read_at": null
+    },
+    {
+      "message_id": "msg_2",
+      "user_id": "clerk_xyz789",
+      "read_at": "2025-07-22T12:16:10Z"
+    }
+  ],
+  "users_in_room": [
+    {
+      "uuid": "a3f8ef98-7e93-4fcb-b6f3-111111111111",
+      "room_id": "room_1",
+      "user_id": "clerk_abc123",
+      "entered_at": "2025-07-22T12:00:00Z"
+    },
+    {
+      "uuid": "c891dfb3-7be2-4524-aaa1-222222222222",
+      "room_id": "room_1",
+      "user_id": "clerk_xyz789",
+      "entered_at": "2025-07-22T12:10:00Z"
+    }
+  ],
+  "notification_pending": [
+    {
+      "id": "notif_1",
+      "user_id": "clerk_xyz789",
+      "expo_payload": {
+        "to": "ExponentPushToken[yyyyyyyyyyyyyy]",
+        "title": "New Message",
+        "body": "Alice: Hey Bob, are you there?",
+        "data": {
+          "room_id": "room_1",
+          "message_id": "msg_1"
+        }
+      },
+      "created_at": "2025-07-22T12:15:01Z"
+    }
+  ]
+}

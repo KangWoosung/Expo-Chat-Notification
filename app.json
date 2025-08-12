@@ -1,11 +1,11 @@
 {
   "expo": {
-    "name": "notification_try08",
-    "slug": "notification_try08",
+    "name": "notification_try07",
+    "slug": "notification_try07",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
-    "scheme": "notificationtry08",
+    "scheme": "notificationtry07",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
     "ios": {
@@ -16,7 +16,9 @@
         "foregroundImage": "./assets/images/adaptive-icon.png",
         "backgroundColor": "#ffffff"
       },
-      "edgeToEdgeEnabled": true
+      "edgeToEdgeEnabled": true,
+      "package": "com.gunymedian.notification_try07",
+      "googleServicesFile ": "./google-services.json"
     },
     "web": {
       "bundler": "metro",
@@ -33,10 +35,18 @@
           "resizeMode": "contain",
           "backgroundColor": "#ffffff"
         }
-      ]
+      ],
+      "expo-secure-store"
     ],
     "experiments": {
       "typedRoutes": true
-    }
+    },
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "612c60c9-3918-4acb-a83c-137a61b5519a"
+      }
+    },
+    "owner": "gunymedian"
   }
 }

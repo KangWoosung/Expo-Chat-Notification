@@ -1,0 +1,7 @@
+{
+  "react-native": {
+    "android": {
+      "googleServicesFile": "./google-services.json"
+    }
+  }
+}

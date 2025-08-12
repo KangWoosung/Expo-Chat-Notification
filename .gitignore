@@ -31,7 +31,20 @@ yarn-error.*
 *.pem
 
 # local env files
+.env
 .env*.local
+
+# typescript
+*.tsbuildinfo
+
+app-example
+
+# firebase
+notification01-f6202-firebase-adminsdk-fbsvc-301d3ee38e.json
+
+# google-services.json
+google-services.json
+
 
 # typescript
 *.tsbuildinfo

@@ -1,50 +1,41 @@
-# Welcome to your Expo app 👋
+# Expo-Chat-Notification-App
 
-This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
+## Job Not Finished!
 
-## Get started
+A **Telegram-like real-time chat application** built with Expo, Supabase, and Clerk. This project supports **push notifications** via FCM/APNs, user authentication via Clerk, and real-time chat messaging using Supabase Realtime.
 
-1. Install dependencies
+## 🔧 Tech Stack
 
-   ```bash
-   npm install
-   ```
+- **[Expo](https://expo.dev/)** – React Native framework for rapid cross-platform development
+- **[Clerk](https://clerk.dev/)** – Authentication and user management
+- **[Supabase](https://supabase.com/)** – Backend-as-a-Service for database, authentication (optional), and real-time sync
+- **Supabase Realtime** – Live chat messaging
+- **Supabase Edge Functions** – Notification handling logic
+- **Expo Notifications** – Push notifications (via APNs for iOS, FCM for Android)
 
-2. Start the app
+---
 
-   ```bash
-   npx expo start
-   ```
+## ✨ Features
 
-In the output, you'll find options to open the app in a
+- 🔐 Secure user authentication (via Clerk)
+- 💬 Real-time messaging inside chat rooms
+- 🔔 Push notifications on new messages in joined rooms
+- 📲 Works on both iOS and Android devices
+- 🧠 Notification system powered by Supabase Edge Functions
 
-- [development build](https://docs.expo.dev/develop/development-builds/introduction/)
-- [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
-- [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
-- [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
+---
 
-You can start developing by editing the files inside the **app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
+## 🖼️ Screenshots
 
-## Get a fresh project
+> _Coming soon..._
 
-When you're ready, run:
+---
+
+## 🚀 Getting Started
+
+### 1. Clone the repository
 
 ```bash
-npm run reset-project
+git clone https://github.com/your-username/Expo-Chat-Notification-App.git
+cd Expo-Chat-Notification-App
 ```
-
-This command will move the starter code to the **app-example** directory and create a blank **app** directory where you can start developing.
-
-## Learn more
-
-To learn more about developing your project with Expo, look at the following resources:
-
-- [Expo documentation](https://docs.expo.dev/): Learn fundamentals, or go into advanced topics with our [guides](https://docs.expo.dev/guides).
-- [Learn Expo tutorial](https://docs.expo.dev/tutorial/introduction/): Follow a step-by-step tutorial where you'll create a project that runs on Android, iOS, and the web.
-
-## Join the community
-
-Join our community of developers creating universal apps.
-
-- [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
-- [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.

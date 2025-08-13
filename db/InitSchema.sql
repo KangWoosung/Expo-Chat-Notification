@@ -248,4 +248,73 @@ END;
 $$;
 
 
+-- 2025-08-14 02:09:22
+--
+-- 유저별 스토리지 사용량 관리
+create table user_storage_usage (
+    user_id text primary key references users(user_id) on delete cascade,
+    total_file_size bigint default 0, -- 총 업로드한 파일 용량 (bytes)
+    total_file_count int default 0,   -- 업로드한 파일 개수
+    message_upload_count int default 0, -- 메시지 업로드 횟수
+    last_reset_at timestamptz default now() -- 사용량 리셋 시점
+);
+
+-- 업로드된 파일 메타데이터
+create table uploaded_files (
+    file_id uuid primary key default gen_random_uuid(),
+    user_id text references users(user_id) on delete cascade,
+    file_name text not null,
+    file_size bigint not null,
+    mime_type text,
+    storage_path text not null,  -- Supabase Storage 버킷 경로
+    public_url text,             -- 접근 가능한 URL
+    created_at timestamptz default now()
+);
+
+-- 메시지와 파일 연결 (1:N 가능)
+create table message_files (
+    message_id uuid references messages(message_id) on delete cascade,
+    file_id uuid references uploaded_files(file_id) on delete cascade,
+    primary key (message_id, file_id)
+);
+
+--
+-- increment 트리거 함수 생성
+CREATE OR REPLACE FUNCTION increment_user_storage_usage()
+RETURNS TRIGGER AS $$
+BEGIN
+  UPDATE user_storage_usage
+  SET total_file_size = total_file_size + NEW.file_size,
+      total_file_count = total_file_count + 1
+  WHERE user_id = NEW.user_id;
+
+  RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+-- decrement 트리거 함수 생성
+CREATE OR REPLACE FUNCTION decrement_user_storage_usage()
+RETURNS TRIGGER AS $$
+BEGIN
+  -- 업로드한 사용자의 total_file_size 감소
+  UPDATE user_storage_usage
+  SET total_file_size = total_file_size - OLD.file_size,
+		  total_file_count = total_file_count - 1
+  WHERE user_id = OLD.user_id;
+
+  RETURN OLD;
+END;
+$$ LANGUAGE plpgsql;
+
+-- TRIGGER 업로드 시
+CREATE TRIGGER trg_increment_user_storage_usage
+AFTER INSERT ON uploaded_files
+FOR EACH ROW
+EXECUTE FUNCTION increment_user_storage_usage();
+
+-- TRIGGER 삭제 시
+CREATE TRIGGER trg_decrement_user_storage_usage
+AFTER DELETE ON uploaded_files
+FOR EACH ROW
+EXECUTE FUNCTION decrement_user_storage_usage();
 

@@ -67,11 +67,11 @@ export default function TabLayout() {
         }}
       />
       <Tabs.Screen
-        name="profile/index"
+        name="files/index"
         options={{
-          title: "Profile",
+          title: "Files",
           tabBarIcon: ({ color, size }) => (
-            <Ionicons name="person" color={color} size={size} />
+            <Ionicons name="document" color={color} size={size} />
           ),
         }}
       />

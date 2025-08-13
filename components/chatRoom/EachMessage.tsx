@@ -26,7 +26,7 @@ export default function EachMessage({
             source={{
               uri: opponentUser?.avatar || DEFAULT_AVATAR,
             }}
-            className="w-8 h-8 rounded-full mb-1"
+            className="w-10 h-10 rounded-full mb-1"
           />
           <Text className="text-md text-foreground-tertiary dark:text-foreground-tertiaryDark">
             {opponentUser?.name}
@@ -38,7 +38,7 @@ export default function EachMessage({
         className={`flex flex-col max-w-[70%] ${isCurrentUser ? "items-end" : "items-start"}`}
       >
         <View
-          className={`px-4 py-2 rounded-2xl ${
+          className={`px-md py-sm rounded-2xl ${
             isCurrentUser
               ? "bg-primary text-white rounded-br-sm"
               : "bg-card dark:bg-card-dark text-foreground dark:text-foreground-dark rounded-bl-sm border border-border dark:border-border-dark"
@@ -47,7 +47,13 @@ export default function EachMessage({
           <Text className="text-lg leading-relaxed">{message.content}</Text>
         </View>
         <Text className="text-xs text-foreground-tertiary dark:text-foreground-tertiaryDark mt-1 px-1">
-          {message.sent_at}
+          {new Date(message.sent_at).toLocaleString(undefined, {
+            year: "2-digit",
+            month: "2-digit",
+            day: "2-digit",
+            hour: "2-digit",
+            minute: "2-digit",
+          })}
         </Text>
       </View>
 
@@ -57,7 +63,7 @@ export default function EachMessage({
             source={{
               uri: currentUser?.imageUrl || DEFAULT_AVATAR,
             }}
-            className="w-8 h-8 rounded-full mb-1"
+            className="w-12 h-12 rounded-full mb-1"
           />
           <Text className="text-md text-foreground-tertiary dark:text-foreground-tertiaryDark">
             {currentUser?.username}

@@ -1,19 +1,31 @@
-import { View, Text, SafeAreaView } from "react-native";
+import { View, Text } from "react-native";
 import React from "react";
 import { Stack } from "expo-router";
 import tailwindColors from "@/utils/tailwindColors";
 import { useNavigationState } from "@react-navigation/native";
 import { useColorScheme } from "nativewind";
-import { SafeAreaProvider } from "react-native-safe-area-context";
 import { ChatRoomProvider, useChatRoom } from "@/contexts/ChatRoomContext";
+import ChatRoomSubmenuTrigger from "@/components/chatRoom/ChatRoomSubmenuTrigger";
+import ChatRoomNotificationTrigger from "@/components/chatRoom/ChatRoomNotificationTrigger";
 
-function ChatRoomHeader() {
+function ChatRoomHeaderTitle() {
   const { chatRoomName } = useChatRoom();
 
   return (
     <Text className="text-foreground dark:text-foreground-dark font-semibold text-lg">
       {chatRoomName}
     </Text>
+  );
+}
+
+function ChatRoomHeaderRight() {
+  const { chatRoomId } = useChatRoom();
+
+  return (
+    <View className="flex flex-row gap-x-xs">
+      <ChatRoomNotificationTrigger chatRoomId={chatRoomId!} />
+      <ChatRoomSubmenuTrigger chatRoomId={chatRoomId!} />
+    </View>
   );
 }
 
@@ -56,7 +68,8 @@ const StackLayout = () => {
         <Stack.Screen
           name="chat_room"
           options={{
-            headerTitle: () => <ChatRoomHeader />,
+            headerTitle: () => <ChatRoomHeaderTitle />,
+            headerRight: () => <ChatRoomHeaderRight />,
           }}
         />
       </Stack>

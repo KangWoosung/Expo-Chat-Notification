@@ -37,9 +37,9 @@ const customDrawerItem = [
     route: "/chats",
   },
   {
-    label: "Settings",
-    iconName: "person-outline",
-    route: "/settings",
+    label: "Files",
+    iconName: "document-outline",
+    route: "/files",
   },
 ];
 

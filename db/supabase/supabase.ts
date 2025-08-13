@@ -95,6 +95,36 @@ export type Database = {
           },
         ]
       }
+      message_files: {
+        Row: {
+          file_id: string
+          message_id: string
+        }
+        Insert: {
+          file_id: string
+          message_id: string
+        }
+        Update: {
+          file_id?: string
+          message_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "message_files_file_id_fkey"
+            columns: ["file_id"]
+            isOneToOne: false
+            referencedRelation: "uploaded_files"
+            referencedColumns: ["file_id"]
+          },
+          {
+            foreignKeyName: "message_files_message_id_fkey"
+            columns: ["message_id"]
+            isOneToOne: false
+            referencedRelation: "messages"
+            referencedColumns: ["message_id"]
+          },
+        ]
+      }
       message_reads: {
         Row: {
           message_id: string
@@ -191,6 +221,79 @@ export type Database = {
             foreignKeyName: "notification_pending_user_id_fkey"
             columns: ["user_id"]
             isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["user_id"]
+          },
+        ]
+      }
+      uploaded_files: {
+        Row: {
+          created_at: string | null
+          file_id: string
+          file_name: string
+          file_size: number
+          mime_type: string | null
+          public_url: string | null
+          storage_path: string
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          file_id?: string
+          file_name: string
+          file_size: number
+          mime_type?: string | null
+          public_url?: string | null
+          storage_path: string
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          file_id?: string
+          file_name?: string
+          file_size?: number
+          mime_type?: string | null
+          public_url?: string | null
+          storage_path?: string
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "uploaded_files_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["user_id"]
+          },
+        ]
+      }
+      user_storage_usage: {
+        Row: {
+          last_reset_at: string | null
+          message_upload_count: number | null
+          total_file_count: number | null
+          total_file_size: number | null
+          user_id: string
+        }
+        Insert: {
+          last_reset_at?: string | null
+          message_upload_count?: number | null
+          total_file_count?: number | null
+          total_file_size?: number | null
+          user_id: string
+        }
+        Update: {
+          last_reset_at?: string | null
+          message_upload_count?: number | null
+          total_file_count?: number | null
+          total_file_size?: number | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_storage_usage_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: true
             referencedRelation: "users"
             referencedColumns: ["user_id"]
           },

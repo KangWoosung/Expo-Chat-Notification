@@ -1,8 +1,7 @@
-import { View, Text, TouchableOpacity, TextInput } from "react-native";
+import { View, TouchableOpacity, TextInput } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import AttachmentUploader from "./AttachmentUploader";
-import { useChatRoom } from "@/contexts/ChatRoomContext";
-import { HEADER_ICON_SIZE, HEADER_ICON_SIZE_SM } from "@/constants/constants";
+import { HEADER_ICON_SIZE } from "@/constants/constants";
 import { useColorScheme } from "nativewind";
 import tailwindColors from "@/utils/tailwindColors";
 
@@ -11,6 +10,7 @@ type InputAreaProps = {
   setMessage: (text: string) => void;
   handleSendMessage: () => void;
   inputRef: React.RefObject<TextInput | null>;
+  chatRoomId: string;
 };
 
 export default function InputArea({
@@ -18,8 +18,8 @@ export default function InputArea({
   setMessage,
   handleSendMessage,
   inputRef,
+  chatRoomId,
 }: InputAreaProps) {
-  const { chatRoomId } = useChatRoom();
   const { colorScheme } = useColorScheme();
   const isDark = colorScheme === "dark";
 

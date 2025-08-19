@@ -229,6 +229,12 @@ module.exports = {
         xl: "0 20px 25px -5px rgba(30, 41, 59, 0.1), 0 10px 10px -5px rgba(30, 41, 59, 0.04)",
       },
 
+      // Opacity
+      opacity: {
+        50: "0.5",
+        25: "0.25",
+      },
+
       // 애니메이션 지속 시간
       transitionDuration: {
         fast: "150ms",

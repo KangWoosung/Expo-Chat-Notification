@@ -156,7 +156,8 @@ const CustomDrawerContent = (props: DrawerContentComponentProps) => {
               color={foregroundTheme}
             />
           )}
-          onPress={() => router.push("/profile")}
+          // @ts-ignore
+          onPress={() => router.push("/settings")}
           labelStyle={{
             fontWeight: "bold",
             color: foregroundTheme,

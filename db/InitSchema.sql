@@ -86,6 +86,8 @@ CREATE POLICY "chat_room_comembers can see each other"
 	;
 
 
+-- enum type definition
+create type public.message_enum_type as enum ('text', 'file', 'image', 'video');
 
 -- messages table
 create table public.messages (
@@ -93,7 +95,8 @@ create table public.messages (
   room_id uuid references public.chat_rooms(room_id) on delete cascade,
   sender_id text references public.users(user_id) on delete cascade,
   content text not null,
-  sent_at timestamptz default now()
+  sent_at timestamptz default now(),
+  message_type public.message_enum_type not null default 'text'
 );
 
 create index idx_messages_room_id on public.messages(room_id);

@@ -4,13 +4,14 @@ import { Stack } from "expo-router";
 import tailwindColors from "@/utils/tailwindColors";
 import { useNavigationState } from "@react-navigation/native";
 import { useColorScheme } from "nativewind";
-import { ChatRoomProvider, useChatRoom } from "@/contexts/ChatRoomContext";
+import { ChatRoomProvider, useChatRoom } from "@/contexts/ChatRoomProvider";
 import ChatRoomSubmenuTrigger from "@/components/chatRoom/ChatRoomSubmenuTrigger";
 import ChatRoomNotificationTrigger from "@/components/chatRoom/ChatRoomNotificationTrigger";
 
+// useChatRoom uses already cached chatRoomName from Context
+// So, it's fast enough.
 function ChatRoomHeaderTitle() {
   const { chatRoomName } = useChatRoom();
-
   return (
     <Text className="text-foreground dark:text-foreground-dark font-semibold text-lg">
       {chatRoomName}
@@ -18,9 +19,9 @@ function ChatRoomHeaderTitle() {
   );
 }
 
+// useChatRoom uses already cached chatRoomId from Context
 function ChatRoomHeaderRight() {
   const { chatRoomId } = useChatRoom();
-
   return (
     <View className="flex flex-row gap-x-xs">
       <ChatRoomNotificationTrigger chatRoomId={chatRoomId!} />
@@ -32,6 +33,9 @@ function ChatRoomHeaderRight() {
 const StackLayout = () => {
   const state = useNavigationState((state) => state);
 
+  const { colorScheme } = useColorScheme();
+  const isDark = colorScheme === "dark";
+
   const currentRouteName =
     state.routes[state.index]?.state?.routes?.[
       state.routes[state.index]?.state?.index || 0
@@ -41,9 +45,6 @@ const StackLayout = () => {
   const hideTabBarScreens = ["chats/chat_room"];
 
   const shouldHideTabBar = hideTabBarScreens.includes(currentRouteName);
-
-  const { colorScheme } = useColorScheme();
-  const isDark = colorScheme === "dark";
 
   const backgroundTheme =
     tailwindColors.background[isDark ? "secondaryDark" : "secondary"];

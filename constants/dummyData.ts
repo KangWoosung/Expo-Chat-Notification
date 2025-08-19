@@ -1,6 +1,9 @@
 // 채팅 앱 초기 더미 데이터 (initSchema 기반)
 
 // import { v4 as uuidv4 } from "uuid";
+import { Tables } from "@/db/supabase/supabase";
+
+type Message = Tables<"messages">;
 
 // 유저 더미 데이터
 export const dummyUsers = [
@@ -9,24 +12,36 @@ export const dummyUsers = [
     name: "김철수",
     email: "chulsoo@example.com",
     avatar: "https://randomuser.me/api/portraits/men/1.jpg",
+    push_token: "ExponentPushToken[xxxxxxxxxxxxxx]",
+    created_at: "2025-08-10T10:00:00.000Z",
+    updated_at: "2025-08-10T10:00:00.000Z",
   },
   {
     user_id: "user-002",
     name: "이영희",
     email: "younghee@example.com",
     avatar: "https://randomuser.me/api/portraits/women/2.jpg",
+    push_token: "ExponentPushToken[xxxxxxxxxxxxxx]",
+    created_at: "2025-08-10T10:00:00.000Z",
+    updated_at: "2025-08-10T10:00:00.000Z",
   },
   {
     user_id: "user-003",
     name: "박민수",
     email: "minsoo@example.com",
     avatar: "https://randomuser.me/api/portraits/men/3.jpg",
+    push_token: "ExponentPushToken[xxxxxxxxxxxxxx]",
+    created_at: "2025-08-10T10:00:00.000Z",
+    updated_at: "2025-08-10T10:00:00.000Z",
   },
   {
     user_id: "user-004",
     name: "최지은",
     email: "jieun@example.com",
     avatar: "https://randomuser.me/api/portraits/women/4.jpg",
+    push_token: "ExponentPushToken[xxxxxxxxxxxxxx]",
+    created_at: "2025-08-10T10:00:00.000Z",
+    updated_at: "2025-08-10T10:00:00.000Z",
   },
 ];
 
@@ -116,7 +131,7 @@ export const dummyChatRoomMembers = [
 ];
 
 // 메시지 더미 데이터
-export const dummyMessages = [
+export const dummyMessages: Message[] = [
   // room-001
   {
     message_id: "msg-001",
@@ -124,6 +139,7 @@ export const dummyMessages = [
     sender_id: "user-001",
     content: "안녕하세요, 영희님!",
     sent_at: "2025-08-10T10:01:00.000Z",
+    message_type: "text",
   },
   {
     message_id: "msg-002",
@@ -131,6 +147,7 @@ export const dummyMessages = [
     sender_id: "user-002",
     content: "안녕하세요, 철수님! 잘 지내시죠?",
     sent_at: "2025-08-10T10:01:10.000Z",
+    message_type: "text",
   },
   // room-002
   {
@@ -139,6 +156,7 @@ export const dummyMessages = [
     sender_id: "user-002",
     content: "민수님, 오늘 회의 가능하신가요?",
     sent_at: "2025-08-10T10:06:00.000Z",
+    message_type: "text",
   },
   {
     message_id: "msg-004",
@@ -146,6 +164,7 @@ export const dummyMessages = [
     sender_id: "user-003",
     content: "네, 가능합니다!",
     sent_at: "2025-08-10T10:06:10.000Z",
+    message_type: "text",
   },
   // room-003 (group)
   {
@@ -154,6 +173,7 @@ export const dummyMessages = [
     sender_id: "user-003",
     content: "모두 안녕하세요! 그룹 채팅방에 오신 걸 환영합니다.",
     sent_at: "2025-08-10T11:01:00.000Z",
+    message_type: "text",
   },
   {
     message_id: "msg-006",
@@ -161,6 +181,7 @@ export const dummyMessages = [
     sender_id: "user-001",
     content: "안녕하세요!",
     sent_at: "2025-08-10T11:01:10.000Z",
+    message_type: "text",
   },
   {
     message_id: "msg-007",
@@ -168,6 +189,7 @@ export const dummyMessages = [
     sender_id: "user-002",
     content: "반갑습니다~",
     sent_at: "2025-08-10T11:01:20.000Z",
+    message_type: "text",
   },
   {
     message_id: "msg-008",
@@ -175,5 +197,6 @@ export const dummyMessages = [
     sender_id: "user_312BJDPu1sXChmhpAODdTkeYhwv",
     content: "안녕하세요! ..................",
     sent_at: "2025-08-10T11:01:20.000Z",
+    message_type: "text",
   },
 ];

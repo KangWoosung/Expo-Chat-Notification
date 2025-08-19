@@ -4,7 +4,7 @@ import {
   ThemeProvider,
 } from "@react-navigation/native";
 import { useFonts } from "expo-font";
-import { Stack } from "expo-router";
+import { ErrorBoundary, Stack } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import { resourceCache } from "@clerk/clerk-expo/resource-cache";
 import { tokenCache } from "@clerk/clerk-expo/token-cache";

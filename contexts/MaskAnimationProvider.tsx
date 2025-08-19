@@ -18,7 +18,7 @@ Usage:
 */
 
 // MaskAnimationProvider.tsx
-import { useMaskAnimationStore } from "@/contexts/maskAnimationZustand";
+import { useMaskAnimationStore } from "@/zustand/maskAnimationZustand";
 import {
   Canvas,
   Circle,

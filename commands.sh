@@ -62,3 +62,6 @@ npx expo install expo-document-picker
 
 ## File System
 npx expo install expo-file-system
+
+## jose
+npx expo install jose

@@ -13,6 +13,10 @@ import {
   FILE_UPLOAD_LIMIT,
 } from "@/constants/usageLimits";
 import { useUser } from "@clerk/clerk-expo";
+import { decodeJwt } from "jose";
+import { MessageEnumType, mimeTypeToEnum } from "@/utils/mimeTypeToEnum";
+
+const BUCKET_NAME = process.env.EXPO_PUBLIC_SUPABASE_BUCKET_NAME!;
 
 interface Props {
   roomId: string | null;
@@ -39,8 +43,9 @@ export default function AttachmentUploader({ roomId, onUploaded }: Props) {
       let fileName = "";
       let fileSize = 0;
       let mimeType = "";
+      let messageType: MessageEnumType = "text";
 
-      // 파일 선택
+      // File selection
       if (type === "image") {
         const result = await ImagePicker.launchImageLibraryAsync({
           mediaTypes: ["images", "videos"],
@@ -52,6 +57,7 @@ export default function AttachmentUploader({ roomId, onUploaded }: Props) {
         fileName = fileUri?.split("/").pop() || `image-${Date.now()}.jpg`;
         mimeType = result.assets[0].mimeType || "image/jpeg";
         fileSize = result.assets[0].fileSize || 0;
+        messageType = mimeTypeToEnum(mimeType);
       } else {
         const result = await DocumentPicker.getDocumentAsync({
           type: "*/*",
@@ -61,9 +67,10 @@ export default function AttachmentUploader({ roomId, onUploaded }: Props) {
         fileName = result.assets[0].name;
         mimeType = result.assets[0].mimeType || "application/octet-stream";
         fileSize = result.assets[0].size || 0;
+        messageType = mimeTypeToEnum(mimeType);
       }
 
-      // check usage limit
+      // Check usage limit
       const { data: usage } = await supabase
         .from("user_storage_usage")
         .select("*")
@@ -77,37 +84,77 @@ export default function AttachmentUploader({ roomId, onUploaded }: Props) {
 
       if (!fileUri) return;
 
-      // read file
-      const base64 = await FileSystem.readAsStringAsync(fileUri, {
-        encoding: FileSystem.EncodingType.Base64,
-      });
+      // Read file
+      // const base64 = await FileSystem.readAsStringAsync(fileUri, {
+      //   encoding: FileSystem.EncodingType.Base64,
+      // });
+      // const ext = fileName.split(".").pop() || "";
+      // const path = `${roomId}/${Date.now()}.${ext}`;
+      // const {
+      //   data: { session },
+      // } = await supabase.auth.getSession();
+
+      // // logging jwt
+      // if (session) {
+      //   const token = session.access_token;
+      //   const decoded = decodeJwt(token);
+
+      //   console.log("auth.jwt()->>'sub':", decoded.sub);
+      //   console.log("auth.uid():", session.user.id); // 얘는 같은 값
+      // }
+
+      // const response = await fetch(fileUri);
+      // const blob = await response.blob();
+      // const path = `${roomId}/${Date.now()}.${blob.type.split("/")[1]}`;
+      // Upload to Supabase Storage
+      // const { error: uploadError } = await supabase.storage
+      //   .from(BUCKET_NAME)
+      //   .upload(path, formData);
+      // Upload to Supabase Storage
+      // const { error: uploadError } = await supabase.storage
+      //   .from(BUCKET_NAME)
+      //   .upload(path, blob, {
+      //     contentType: mimeType,
+      //   });
+
+      const formData = new FormData(); // FormData 는 RN 의 전역객체입니다.
+      formData.append("file", {
+        uri: fileUri,
+        name: fileName,
+        type: mimeType,
+      } as any);
+
+      // Upload to Supabase Storage
       const ext = fileName.split(".").pop() || "";
       const path = `${roomId}/${Date.now()}.${ext}`;
-
-      // upload to Supabase Storage
       const { error: uploadError } = await supabase.storage
-        .from("chat-uploads")
-        .upload(path, Buffer.from(base64, "base64"), {
-          contentType: mimeType,
-        });
-      if (uploadError) throw uploadError;
+        .from(BUCKET_NAME)
+        .upload(path, formData);
 
-      // Public URL
+      if (uploadError) {
+        console.error("supabase.storage upload error:", uploadError);
+        // Alert.alert("업로드 실패", "파일 업로드 중 오류가 발생했습니다.\n잠시 후 다시 시도해주세요.");
+        throw new Error(`supabase.storage upload error: ${uploadError}`);
+      }
+
+      // Get public URL
       const { data: publicUrlData } = supabase.storage
-        .from("chat-uploads")
+        .from(BUCKET_NAME)
         .getPublicUrl(path);
       const publicUrl = publicUrlData.publicUrl;
+      console.log("publicUrl:", publicUrl);
 
-      // save message to database
+      // Save message to database
       const { error: messages_insertError, data: messages_data } =
         await supabase
           .from("messages")
           .insert({
             room_id: roomId,
+            sender_id: user.id,
             content: publicUrl,
-            type,
+            message_type: messageType,
           })
-          .select(); // 전체 컬럼 반환
+          .select(); // Return all columns
       if (messages_insertError) throw messages_insertError;
 
       // uploaded_files table
@@ -122,7 +169,7 @@ export default function AttachmentUploader({ roomId, onUploaded }: Props) {
             storage_path: path,
             public_url: publicUrl,
           })
-          .select(); // 전체 컬럼 반환
+          .select(); // Return all columns
       if (uploaded_files_insertError) throw uploaded_files_insertError;
 
       // message_files table

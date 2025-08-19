@@ -2,7 +2,7 @@ import {
   MASK_ANIMATE_DURATION,
   THEME_TOGGLER_BUTTON_SIZE,
 } from "@/constants/constants";
-import { useMaskAnimationStore } from "@/contexts/maskAnimationZustand";
+import { useMaskAnimationStore } from "@/zustand/maskAnimationZustand";
 import { useThemeProvider } from "@/contexts/NativewindThemeProvider";
 import { calculateMaxRadius } from "@/utils/calculateMaxRadius";
 import tailwindColors from "@/utils/tailwindColors";

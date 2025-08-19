@@ -19,8 +19,8 @@ import { useSupabase } from "@/contexts/SupabaseProvider";
 import { useAuth, useUser } from "@clerk/clerk-expo";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useEffect, useState } from "react";
-import { ActivityIndicator, View, Text } from "react-native";
-import { Tables } from "@/supabase/supabase";
+import { Tables } from "@/db/supabase/supabase";
+import ChatRoomLoading from "@/components/chatRoom/ChatRoomLoading";
 
 type User = Tables<"users">;
 
@@ -63,14 +63,7 @@ export default function ChatRoomIndex() {
   }, [targetUserId, isSignedIn, currentUser?.id]);
 
   if (chatRoomIndexLoading) {
-    return (
-      <View className="flex-1 items-center justify-center bg-background-blank dark:bg-background-dark">
-        <ActivityIndicator size="large" />
-        <Text className="text-foreground dark:text-foreground-dark">
-          Loading chat room...
-        </Text>
-      </View>
-    );
+    return <ChatRoomLoading />;
   }
 
   return null;

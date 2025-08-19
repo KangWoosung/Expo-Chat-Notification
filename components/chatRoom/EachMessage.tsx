@@ -1,11 +1,17 @@
 import { DEFAULT_AVATAR } from "@/constants/constants";
 import { Image, Text, View } from "react-native";
+import { useEffect, useState } from "react";
+import { Tables } from "@/db/supabase/supabase";
+
+type User = Tables<"users">;
+type Message = Tables<"messages">;
 
 type EachMessageProps = {
   sender: string;
-  message: any;
+  message: Message;
   currentUser: any;
-  opponentUser: any;
+  opponentUser: User | null;
+  opponentUsers: User[];
 };
 
 export default function EachMessage({
@@ -13,8 +19,26 @@ export default function EachMessage({
   message,
   currentUser,
   opponentUser,
+  opponentUsers,
 }: EachMessageProps) {
+  const [messageSender, setMessageSender] = useState<User | null>(null);
   const isCurrentUser = currentUser.id === sender;
+
+  useEffect(() => {
+    let senderUser = null;
+    // 1:1 chat room
+    if (opponentUser) {
+      senderUser = opponentUser;
+    } else if (opponentUsers.length >= 1) {
+      senderUser = opponentUsers.find((user) => user.user_id === sender);
+    }
+    if (senderUser) {
+      setMessageSender(senderUser);
+    }
+  }, [sender, opponentUser, opponentUsers]);
+
+  if (!message) return null;
+  if (!message.sent_at) return null;
 
   return (
     <View
@@ -24,12 +48,12 @@ export default function EachMessage({
         <View className="flex flex-col items-center mr-2">
           <Image
             source={{
-              uri: opponentUser?.avatar || DEFAULT_AVATAR,
+              uri: messageSender?.avatar || DEFAULT_AVATAR,
             }}
             className="w-10 h-10 rounded-full mb-1"
           />
           <Text className="text-md text-foreground-tertiary dark:text-foreground-tertiaryDark">
-            {opponentUser?.name}
+            {messageSender?.name}
           </Text>
         </View>
       )}
@@ -40,12 +64,20 @@ export default function EachMessage({
         <View
           className={`px-md py-sm rounded-2xl ${
             isCurrentUser
-              ? "bg-primary text-white rounded-br-sm"
+              ? "bg-primary text-white rounded-br-sm bg-opacity-50"
               : "bg-card dark:bg-card-dark text-foreground dark:text-foreground-dark rounded-bl-sm border border-border dark:border-border-dark"
           }`}
         >
-          <Text className="text-lg leading-relaxed">{message.content}</Text>
+          {message.message_type === "text" ? (
+            <Text className="text-lg leading-relaxed">{message.content}</Text>
+          ) : (
+            <Image
+              source={{ uri: message.content }}
+              className="w-[150px] h-[150px] rounded-md object-contain"
+            />
+          )}
         </View>
+
         <Text className="text-xs text-foreground-tertiary dark:text-foreground-tertiaryDark mt-1 px-1">
           {new Date(message.sent_at).toLocaleString(undefined, {
             year: "2-digit",

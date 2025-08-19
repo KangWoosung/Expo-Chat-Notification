@@ -20,49 +20,60 @@ import React, { useEffect, useState, useRef } from "react";
 import { useLocalSearchParams } from "expo-router";
 import { useSupabase } from "@/contexts/SupabaseProvider";
 import { useUser } from "@clerk/clerk-expo";
-import { Tables } from "@/supabase/supabase";
-import { useChatRoom } from "@/contexts/ChatRoomContext";
+import { Tables } from "@/db/supabase/supabase";
+import { useChatRoom } from "@/contexts/ChatRoomProvider";
 import { dummyUsers, dummyMessages } from "@/constants/dummyData";
 import EachMessage from "@/components/chatRoom/EachMessage";
 import InputArea from "@/components/chatRoom/InputArea";
+import ChatRoomLoading from "@/components/chatRoom/ChatRoomLoading";
 
 type Message = Tables<"messages">;
 
 const ChatRoom = () => {
   const { id: chatRoomId } = useLocalSearchParams<{ id: string }>();
   const { supabase } = useSupabase();
+  const { user: currentUser } = useUser();
+  const { opponentUser, opponentUsers, setChatRoomId } = useChatRoom();
+
+  // Message States & Refs
   const [message, setMessage] = useState("");
   const [messages, setMessages] = useState<Message[]>([]);
   const scrollViewRef = useRef<ScrollView>(null);
   const inputRef = useRef<TextInput | null>(null);
+  const [messagesLoading, setMessagesLoading] = useState(false);
 
-  const { user: currentUser } = useUser();
-  const { opponentUser, setChatRoomId } = useChatRoom();
-
+  // Set the chatRoomId from params to context
   useEffect(() => {
     if (chatRoomId) {
       setChatRoomId(chatRoomId as string);
     }
   }, [chatRoomId, setChatRoomId]);
 
+  // Fetch messages from Supabase
   useEffect(() => {
     if (!supabase || !chatRoomId) return;
 
     const fetchMessages = async () => {
-      const { data, error } = await supabase
+      setMessagesLoading(true);
+      const { data, error, status } = await supabase
         .from("messages")
         .select("*")
         .eq("room_id", chatRoomId)
         .order("sent_at", { ascending: true });
       if (error) {
         console.error("Error fetching messages:", error);
-      } else {
+      } else if (status === 200) {
         setMessages(data || []);
+        setMessagesLoading(false);
+      } else {
+        console.error("Error fetching messages:", status, error);
+        setMessagesLoading(false);
       }
     };
     fetchMessages();
   }, [chatRoomId, supabase]);
 
+  // Send message to Supabase
   const handleSendMessage = async () => {
     if (!message.trim() || !currentUser?.id || !supabase) return;
     (async () => {
@@ -84,11 +95,15 @@ const ChatRoom = () => {
     })();
   };
 
+  if (messagesLoading) {
+    return <ChatRoomLoading />;
+  }
+
   return (
     <View className="flex-1 bg-background-blank dark:bg-background-dark">
       {/* Header */}
 
-      {/* Messages - flex-1로 남은 공간을 모두 차지하도록 설정 */}
+      {/* Messages - flex-1 */}
       <ScrollView
         ref={scrollViewRef}
         className="flex-1 p-4 bg-background dark:bg-background-dark"
@@ -108,6 +123,7 @@ const ChatRoom = () => {
                 message={msg}
                 currentUser={currentUser}
                 opponentUser={opponentUser}
+                opponentUsers={opponentUsers}
               />
             ))
           : dummyMessages.map((msg) => (
@@ -116,17 +132,19 @@ const ChatRoom = () => {
                 sender={msg.sender_id || ""}
                 message={msg}
                 currentUser={currentUser}
-                opponentUser={dummyUsers[3]}
+                opponentUser={null}
+                opponentUsers={dummyUsers}
               />
             ))}
       </ScrollView>
 
-      {/* Input Area - 하단에 고정 */}
+      {/* Input Area - fixed at the bottom */}
       <InputArea
         message={message}
         setMessage={setMessage}
         handleSendMessage={handleSendMessage}
         inputRef={inputRef}
+        chatRoomId={chatRoomId}
       />
     </View>
   );

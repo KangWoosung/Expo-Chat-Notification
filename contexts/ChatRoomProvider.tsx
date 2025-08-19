@@ -1,8 +1,7 @@
 import React, { createContext, useContext, useEffect, useState } from "react";
-import { View, ActivityIndicator } from "react-native";
 import { useSupabase } from "@/contexts/SupabaseProvider";
 import { useUser } from "@clerk/clerk-expo";
-import { Tables } from "@/supabase/supabase";
+import { Tables } from "@/db/supabase/supabase";
 
 type User = Tables<"users">;
 
@@ -36,21 +35,25 @@ export function ChatRoomProvider({ children }: { children: React.ReactNode }) {
 
     (async () => {
       setLoading(true);
-      const { data: roomData, error: roomError } = await supabase
-        .from("chat_room_members")
-        .select("*")
-        .eq("room_id", chatRoomId)
-        .neq("user_id", currentUser.id);
+      const { data: chatRoomMembersData, error: chatRoomMembersError } =
+        await supabase
+          .from("chat_room_members")
+          .select("*")
+          .eq("room_id", chatRoomId)
+          .neq("user_id", currentUser.id);
 
-      if (roomError) {
-        console.error("Error fetching room:", roomError);
+      if (chatRoomMembersError) {
+        console.error(
+          "Error fetching chat room members:",
+          chatRoomMembersError
+        );
         setLoading(false);
         return;
       }
 
       // 1:1 chat room : get opponent user data
-      if (roomData.length === 1) {
-        const opponentMember = roomData[0];
+      if (chatRoomMembersData.length === 1) {
+        const opponentMember = chatRoomMembersData[0];
         const { data: opponentUserData, error: opponentError } = await supabase
           .from("users")
           .select("*")
@@ -67,7 +70,7 @@ export function ChatRoomProvider({ children }: { children: React.ReactNode }) {
         setChatRoomName("Chat with " + opponentUserData.name);
         setChatRoomId(chatRoomId);
         setLoading(false);
-      } else if (roomData.length > 1) {
+      } else if (chatRoomMembersData.length > 1) {
         // group chat room : get chat room name
         const { data: chatRoomData, error: chatRoomError } = await supabase
           .from("chat_rooms")
@@ -88,7 +91,7 @@ export function ChatRoomProvider({ children }: { children: React.ReactNode }) {
             .select("*")
             .in(
               "user_id",
-              roomData.map((member) => member.user_id)
+              chatRoomMembersData.map((member) => member.user_id)
             );
 
         if (usersInRoomError) {

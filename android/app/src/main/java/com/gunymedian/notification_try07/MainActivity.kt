@@ -1,4 +1,4 @@
-package com.gunymedian.notification_try08
+package com.gunymedian.notification_try07
 import expo.modules.splashscreen.SplashScreenManager
 
 import android.os.Build

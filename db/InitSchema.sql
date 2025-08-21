@@ -286,10 +286,12 @@ create table message_files (
 CREATE OR REPLACE FUNCTION increment_user_storage_usage()
 RETURNS TRIGGER AS $$
 BEGIN
-  UPDATE user_storage_usage
-  SET total_file_size = total_file_size + NEW.file_size,
-      total_file_count = total_file_count + 1
-  WHERE user_id = NEW.user_id;
+  INSERT INTO user_storage_usage (user_id, total_file_size, total_file_count)
+  VALUES (NEW.user_id, NEW.file_size, 1)
+  ON CONFLICT (user_id) 
+  DO UPDATE SET
+    total_file_size = user_storage_usage.total_file_size + EXCLUDED.total_file_size,
+    total_file_count = user_storage_usage.total_file_count + 1;
 
   RETURN NEW;
 END;

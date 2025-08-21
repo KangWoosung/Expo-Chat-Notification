@@ -1,4 +1,4 @@
-package com.gunymedian.notification_try08
+package com.gunymedian.notification_try07
 
 import android.app.Application
 import android.content.res.Configuration

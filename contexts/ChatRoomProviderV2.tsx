@@ -2,7 +2,7 @@
 2025-08-20 03:50:50
 
 This approach went to more problematic then older one.
-Things can be worked fine, but it makes the code structure too complicated.
+Things can working fine, but it makes the code structure too complicated.
 Common useEffect and fetch data from supabase in end components seems the best choice so far.
 
 This provider is not used anymore.

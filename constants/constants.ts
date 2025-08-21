@@ -17,3 +17,5 @@ export const MASK_ANIMATE_DURATION = 1500;
 export const HEADER_ICON_SIZE = 24;
 export const HEADER_ICON_SIZE_SM = 20;
 export const THEME_TOGGLER_BUTTON_SIZE = 24;
+
+export const MESSAGES_PER_PAGE = 10;

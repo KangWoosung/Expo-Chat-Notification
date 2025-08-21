@@ -65,3 +65,18 @@ npx expo install expo-file-system
 
 ## jose
 npx expo install jose
+
+## Tanstack Query
+npx expo install @tanstack/react-query
+
+## Chart Kit
+npx expo install react-native-chart-kit
+
+## SVG
+npx expo install react-native-svg
+
+## Victory Native
+npx expo install victory-native
+
+## Skia
+npx expo install @shopify/react-native-skia

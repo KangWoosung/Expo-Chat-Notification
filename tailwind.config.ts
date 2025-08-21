@@ -68,7 +68,7 @@ module.exports = {
 
         // 버튼 색상 (Primary 및 Secondary)
         primary: {
-          DEFAULT: "hsl(221, 57.10%, 48.40%)", // 브랜드 컬러 (accent-500)
+          DEFAULT: "hsl(221, 63.60%, 82.70%)", // 브랜드 컬러 (accent-500)
           dark: "hsl(220, 70%, 60%)", // 다크 모드 브랜드 컬러 (accent-400)
           hover: "hsl(220, 70%, 40%)", // 호버 상태 (accent-600)
           hoverDark: "hsl(220, 70%, 50%)", // 다크 모드 호버 상태 (accent-500)

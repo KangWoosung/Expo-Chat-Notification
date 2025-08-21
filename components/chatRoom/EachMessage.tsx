@@ -2,6 +2,7 @@ import { DEFAULT_AVATAR } from "@/constants/constants";
 import { Image, Text, View } from "react-native";
 import { useEffect, useState } from "react";
 import { Tables } from "@/db/supabase/supabase";
+import { Ionicons } from "@expo/vector-icons";
 
 type User = Tables<"users">;
 type Message = Tables<"messages">;
@@ -50,7 +51,7 @@ export default function EachMessage({
             source={{
               uri: messageSender?.avatar || DEFAULT_AVATAR,
             }}
-            className="w-10 h-10 rounded-full mb-1"
+            className="w-10 h-10 rounded-full"
           />
           <Text className="text-md text-foreground-tertiary dark:text-foreground-tertiaryDark">
             {messageSender?.name}
@@ -70,11 +71,13 @@ export default function EachMessage({
         >
           {message.message_type === "text" ? (
             <Text className="text-lg leading-relaxed">{message.content}</Text>
-          ) : (
+          ) : message.message_type === "image" ? (
             <Image
               source={{ uri: message.content }}
               className="w-[150px] h-[150px] rounded-md object-contain"
             />
+          ) : (
+            <Ionicons name="document-text-outline" size={36} color="white" />
           )}
         </View>
 
@@ -90,12 +93,12 @@ export default function EachMessage({
       </View>
 
       {isCurrentUser && (
-        <View className="flex flex-col items-center ml-2">
+        <View className="flex flex-col items-center justify-end ml-2">
           <Image
             source={{
               uri: currentUser?.imageUrl || DEFAULT_AVATAR,
             }}
-            className="w-12 h-12 rounded-full mb-1"
+            className="w-12 h-12 rounded-full "
           />
           <Text className="text-md text-foreground-tertiary dark:text-foreground-tertiaryDark">
             {currentUser?.username}

@@ -9,7 +9,7 @@ type ChartKitPieChartProps = {
   chartConfig: any;
 };
 
-const defaultChartConfig = {
+export const defaultChartConfig = {
   backgroundGradientFrom: "#1E2923",
   backgroundGradientFromOpacity: 0,
   backgroundGradientTo: "#08130D",

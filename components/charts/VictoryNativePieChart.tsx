@@ -22,7 +22,7 @@ const VictoryNativePieChart = ({
   chartData: ChartDataType[];
 }) => {
   return (
-    <View className="flex items-center justify-center w-full h-[200px] p-lg gap-y-sm">
+    <View className="flex items-center justify-center w-full h-[200px] p-lg gap-y-sm bg-red-500">
       <PolarChart
         data={chartData}
         labelKey={"label"}

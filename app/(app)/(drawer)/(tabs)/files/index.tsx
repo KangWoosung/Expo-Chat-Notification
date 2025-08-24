@@ -1,222 +1,62 @@
 import {
   View,
   Text,
-  ScrollView,
   TouchableOpacity,
   FlatList,
-  useWindowDimensions,
+  Dimensions,
+  Pressable,
 } from "react-native";
-import React, { useEffect, useState, useCallback } from "react";
-import Animated, {
-  useSharedValue,
-  useAnimatedStyle,
-  withTiming,
-  Easing,
-} from "react-native-reanimated";
+import { Image } from "expo-image";
+import React, { useEffect, useState } from "react";
 import tailwindColors from "@/utils/tailwindColors";
 import { Ionicons } from "@expo/vector-icons";
 import { HEADER_ICON_SIZE } from "@/constants/constants";
 import { useColorScheme } from "nativewind";
-import { FILE_UPLOAD_LIMIT } from "@/constants/usageLimits";
-import { useSupabase } from "@/contexts/SupabaseProvider";
-import { useUser } from "@clerk/clerk-expo";
-import { Tables } from "@/db/supabase/supabase";
-import VictoryNativePieChart, {
-  ChartDataType,
-} from "@/components/charts/VictoryNativePieChart";
+import { useUploadedFiles } from "@/hooks/useUploadedFiles";
+import { useStorageUsage } from "@/hooks/useStorageUsage";
+import { router } from "expo-router";
 
-type UploadedFile = Tables<"uploaded_files">;
-type StorageUsage = Tables<"user_storage_usage">;
-
-const minSectionHeight = 64;
+const SCREEN_WIDTH = Dimensions.get("window").width;
 
 const FilesIndex = () => {
-  const { height: screenHeight } = useWindowDimensions();
-
-  // Layout measurements for accurate height calculation
-  const [containerHeight, setContainerHeight] = useState(0);
-  const [sentHeaderHeight, setSentHeaderHeight] = useState(0);
-  const [receivedHeaderHeight, setReceivedHeaderHeight] = useState(0);
-  const [calculatedMaxHeight, setCalculatedMaxHeight] = useState(0);
-
   const { colorScheme } = useColorScheme();
-  const { supabase } = useSupabase();
-  const { user: currentUser } = useUser();
-  const [uploadedFiles, setUploadedFiles] = useState<UploadedFile[]>([]);
   const isDark = colorScheme === "dark";
-  const [selectedSection, setSelectedSection] = useState<"sent" | "received">(
-    "sent"
+  const [fileListWidth, setFileListWidth] = useState(SCREEN_WIDTH);
+  const [eachFileBoxWidth, setEachFileBoxWidth] = useState(
+    Math.round((SCREEN_WIDTH - 8) / 2)
   );
-  const [storageUsage, setStorageUsage] = useState(0);
-  const [storageUsageData, setStorageUsageData] = useState<ChartDataType[]>([]);
 
-  // Reanimated shared values
-  const sentSectionHeight = useSharedValue(minSectionHeight); // h-16 = 64px
-  const receivedSectionHeight = useSharedValue(minSectionHeight);
+  // React Query 훅 사용
+  const {
+    data: uploadedFiles = [],
+    isLoading: isLoadingFiles,
+    error: filesError,
+    refetch: refetchFiles,
+  } = useUploadedFiles();
 
-  const backgroundTheme =
-    tailwindColors.background[isDark ? "secondaryDark" : "secondary"];
+  const { error: storageError } = useStorageUsage();
+
+  useEffect(() => {
+    setEachFileBoxWidth(Math.round((fileListWidth - 8) / 2));
+  }, [fileListWidth]);
+
   const foregroundTheme =
     tailwindColors.foreground[isDark ? "secondaryDark" : "secondary"];
 
-  // Layout measurement callbacks
-  const onContainerLayout = useCallback((event: any) => {
-    const { height } = event.nativeEvent.layout;
-    setContainerHeight(height);
-  }, []);
-
-  const onSentHeaderLayout = useCallback((event: any) => {
-    const { height } = event.nativeEvent.layout;
-    setSentHeaderHeight(height);
-  }, []);
-
-  const onReceivedHeaderLayout = useCallback((event: any) => {
-    const { height } = event.nativeEvent.layout;
-    setReceivedHeaderHeight(height);
-  }, []);
-
-  // Calculate max height based on actual rendered elements
-  useEffect(() => {
-    if (
-      containerHeight > 0 &&
-      sentHeaderHeight > 0 &&
-      receivedHeaderHeight > 0
-    ) {
-      // Total height used by fixed elements
-      const totalHeadersHeight = sentHeaderHeight + receivedHeaderHeight;
-
-      // Available space for one expanded section
-      // containerHeight - both headers - one minimized section
-      const availableHeight =
-        containerHeight - totalHeadersHeight - minSectionHeight - 20; // 20px margins
-
-      const maxHeight = Math.max(availableHeight, minSectionHeight * 2);
-      setCalculatedMaxHeight(maxHeight);
-    }
-  }, [containerHeight, sentHeaderHeight, receivedHeaderHeight]);
-
-  const toggleSection = (section: "sent" | "received") => {
-    setSelectedSection(section);
-
-    // Only proceed if we have accurate measurements
-    if (calculatedMaxHeight > 0) {
-      // Animate heights using precisely calculated values
-      if (section === "sent") {
-        sentSectionHeight.value = withTiming(calculatedMaxHeight, {
-          duration: 300,
-          easing: Easing.out(Easing.cubic),
-        });
-        receivedSectionHeight.value = withTiming(minSectionHeight, {
-          duration: 300,
-          easing: Easing.out(Easing.cubic),
-        });
-      } else {
-        sentSectionHeight.value = withTiming(minSectionHeight, {
-          duration: 300,
-          easing: Easing.out(Easing.cubic),
-        });
-        receivedSectionHeight.value = withTiming(calculatedMaxHeight, {
-          duration: 300,
-          easing: Easing.out(Easing.cubic),
-        });
-      }
-    }
-  };
-
-  useEffect(() => {
-    if (!supabase || !currentUser?.id) return;
-
-    const fetchUploadedFiles = async () => {
-      const { data, error } = await supabase
-        .from("uploaded_files")
-        .select("*")
-        .eq("user_id", currentUser?.id);
-      if (error) {
-        console.error("Error fetching files:", error);
-      } else {
-        setUploadedFiles(data || []);
-      }
-    };
-    fetchUploadedFiles();
-
-    const fetchStorageUsage = async () => {
-      const { data: storageUsage, error: storageUsageError } = await supabase
-        .from("user_storage_usage")
-        .select("*")
-        .eq("user_id", currentUser?.id);
-      if (storageUsageError) {
-        console.error("Error fetching storage usage:", storageUsageError);
-      } else {
-        setStorageUsage(storageUsage?.[0].total_file_size || 0);
-      }
-      const chartData = [
-        {
-          label: "Used",
-          value: storageUsage?.[0].total_file_size || 0,
-          color: "rgba(131, 167, 234, 1)",
-        },
-        {
-          label: "Available",
-          value: FILE_UPLOAD_LIMIT - (storageUsage?.[0].total_file_size || 0),
-          color: "rgb(40, 64, 167)",
-        },
-      ];
-      setStorageUsageData(chartData);
-    };
-    fetchStorageUsage();
-
-    if (!storageUsage || !uploadedFiles) return;
-  }, [supabase, currentUser?.id]);
-
-  // Initialize animation values based on selected section
-  useEffect(() => {
-    if (calculatedMaxHeight > 0) {
-      const targetHeight = calculatedMaxHeight;
-      if (selectedSection === "sent") {
-        sentSectionHeight.value = withTiming(targetHeight, {
-          duration: 300,
-          easing: Easing.out(Easing.cubic),
-        });
-        receivedSectionHeight.value = withTiming(minSectionHeight, {
-          duration: 300,
-          easing: Easing.out(Easing.cubic),
-        });
-      } else {
-        sentSectionHeight.value = withTiming(minSectionHeight, {
-          duration: 300,
-          easing: Easing.out(Easing.cubic),
-        });
-        receivedSectionHeight.value = withTiming(targetHeight, {
-          duration: 300,
-          easing: Easing.out(Easing.cubic),
-        });
-      }
-    }
-  }, [selectedSection, calculatedMaxHeight]);
-
-  // Animated styles
-  const sentSectionStyle = useAnimatedStyle(() => ({
-    height: sentSectionHeight.value,
-  }));
-
-  const receivedSectionStyle = useAnimatedStyle(() => ({
-    height: receivedSectionHeight.value,
-  }));
+  // 에러 처리
+  if (filesError) {
+    console.error("Error fetching files:", filesError);
+  }
+  if (storageError) {
+    console.error("Error fetching storage usage:", storageError);
+  }
 
   return (
-    <View
-      className="flex-1 w-full bg-background dark:bg-background-dark"
-      onLayout={onContainerLayout}
-    >
+    <View className="flex-1 w-full bg-background dark:bg-background-dark">
       {/* Files sent - 상단 */}
-      <Animated.View
-        style={sentSectionStyle}
-        className="w-full overflow-hidden"
-      >
+      <View className="w-full overflow-hidden">
         <TouchableOpacity
-          onPress={() => toggleSection("sent")}
           className={`w-full p-md border-b border-border dark:border-border-dark `}
-          onLayout={onSentHeaderLayout}
         >
           <View className="flex-row w-full items-center gap-x-sm">
             <Ionicons
@@ -228,80 +68,128 @@ const FilesIndex = () => {
               Files sent
             </Text>
             <Ionicons
-              name={selectedSection === "sent" ? "chevron-up" : "chevron-down"}
+              name="chevron-up"
               size={HEADER_ICON_SIZE}
               color={foregroundTheme}
             />
           </View>
         </TouchableOpacity>
 
+        {/* <GiftedBarChart /> */}
+        {/* <GiftedPieChart
+          data={storageUsageData}
+          chartConfig={defaultChartConfig}
+        /> */}
         {/* <VictoryNativePieChart chartData={storageUsageData} /> */}
+        {/* <VictoryNativePieChartV2 /> */}
+        {/* <ChartKitPieChart
+          data={storageUsageData}
+          pieChartWidth={300}
+          pieChartHeight={300}
+          chartConfig={defaultChartConfig}
+        /> */}
         {/* <DistortionCard title="Storage usage" subtitle="0/30MB" /> */}
 
-        {selectedSection === "sent" && (
-          <View className="w-full mt-md p-md bg-background dark:bg-background-dark rounded-lg flex-1">
-            <Text className="text-foreground dark:text-foreground-dark">
-              Storage usage: 0/{FILE_UPLOAD_LIMIT}MB
-            </Text>
-            {/* 여기에 파일 목록이나 추가 내용을 넣을 수 있습니다 */}
+        <View
+          className=" w-full h-full
+            bg-background dark:bg-background-dark 
+          "
+        >
+          {/* 로딩 상태 */}
+          {isLoadingFiles && (
+            <View className="flex-1 items-center justify-center">
+              <Text className="text-foreground dark:text-foreground-dark">
+                파일 목록을 불러오는 중...
+              </Text>
+            </View>
+          )}
+
+          {/* 에러 상태 */}
+          {(filesError || storageError) && (
+            <View className="flex-1 items-center justify-center">
+              <Text className="text-red-500 mb-md">
+                데이터를 불러오는 중 오류가 발생했습니다.
+              </Text>
+              <TouchableOpacity
+                onPress={() => {
+                  refetchFiles();
+                }}
+                className="bg-blue-500 px-lg py-sm rounded-lg"
+              >
+                <Text className="text-white">다시 시도</Text>
+              </TouchableOpacity>
+            </View>
+          )}
+
+          {/* 파일 목록 */}
+          {!isLoadingFiles && !filesError && (
             <FlatList
+              className="w-full h-full"
+              numColumns={2}
+              onLayout={(event) => {
+                const { width } = event.nativeEvent.layout;
+                setFileListWidth(width);
+              }}
               data={uploadedFiles}
-              renderItem={({ item }) => (
-                <View className="flex-row items-center gap-x-sm p-sm">
-                  <Ionicons
-                    name="document-text-outline"
-                    size={HEADER_ICON_SIZE}
-                    color={foregroundTheme}
-                  />
-                  <Text className="text-foreground dark:text-foreground-dark">
-                    {item.file_name}
-                  </Text>
+              renderItem={({ item, index }) => (
+                <View
+                  className={`items-center justify-center ${index % 2 === 0 ? "mr-xs" : ""}`}
+                  style={{
+                    width: eachFileBoxWidth,
+                  }}
+                >
+                  {item.mime_type === "image/jpeg" ? (
+                    <Pressable
+                      // @ts-ignore
+                      onPress={() =>
+                        router.push({
+                          pathname: "/(stack)/uploaded_files/id/[id]",
+                          params: { id: item.file_id },
+                        })
+                      }
+                    >
+                      <Image
+                        source={{ uri: item?.public_url || "" }}
+                        className="rounded-lg"
+                        style={{
+                          width: eachFileBoxWidth,
+                          height: eachFileBoxWidth,
+                          marginTop: 4,
+                          borderRadius: 8,
+                        }}
+                        contentFit="cover"
+                        cachePolicy="disk"
+                      />
+                    </Pressable>
+                  ) : (
+                    <Pressable
+                      // @ts-ignore
+                      onPress={() =>
+                        router.push({
+                          pathname: "/(stack)/uploaded_files/id/[id]",
+                          params: { id: item.file_id },
+                        })
+                      }
+                    >
+                      <View className="flex-col items-center justify-center w-full gap-y-sm mt-xs">
+                        <Ionicons
+                          name="document-text-outline"
+                          size={HEADER_ICON_SIZE}
+                          color={foregroundTheme}
+                        />
+                        <Text className="text-sm text-foreground dark:text-foreground-dark">
+                          {item.file_name.slice(0, 20)}
+                        </Text>
+                      </View>
+                    </Pressable>
+                  )}
                 </View>
               )}
               keyExtractor={(item) => item.file_id}
             />
-          </View>
-        )}
-      </Animated.View>
-
-      {/* Files received - 하단 */}
-      <Animated.View
-        style={receivedSectionStyle}
-        className="w-full overflow-hidden"
-      >
-        <TouchableOpacity
-          onPress={() => toggleSection("received")}
-          className="w-full p-md"
-          onLayout={onReceivedHeaderLayout}
-        >
-          <View className="flex-row w-full items-center gap-x-sm">
-            <Ionicons
-              name="cloud-download-outline"
-              size={HEADER_ICON_SIZE}
-              color={foregroundTheme}
-            />
-            <Text className="text-lg font-bold text-foreground dark:text-foreground-dark flex-1">
-              Files received
-            </Text>
-            <Ionicons
-              name={
-                selectedSection === "received" ? "chevron-up" : "chevron-down"
-              }
-              size={HEADER_ICON_SIZE}
-              color={foregroundTheme}
-            />
-          </View>
-
-          {selectedSection === "received" && (
-            <View className="w-full mt-md p-md bg-background dark:bg-background-dark rounded-lg flex-1">
-              <Text className="text-foreground dark:text-foreground-dark">
-                Storage usage: 0/30MB
-              </Text>
-              {/* 여기에 파일 목록이나 추가 내용을 넣을 수 있습니다 */}
-            </View>
           )}
-        </TouchableOpacity>
-      </Animated.View>
+        </View>
+      </View>
     </View>
   );
 };

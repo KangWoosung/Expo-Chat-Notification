@@ -15,6 +15,7 @@ import {
 import { useUser } from "@clerk/clerk-expo";
 import { decodeJwt } from "jose";
 import { MessageEnumType, mimeTypeToEnum } from "@/utils/mimeTypeToEnum";
+import { useInvalidateUploadedFiles } from "@/hooks/useUploadedFiles";
 
 const BUCKET_NAME = process.env.EXPO_PUBLIC_SUPABASE_BUCKET_NAME!;
 
@@ -27,6 +28,7 @@ export default function AttachmentUploader({ roomId, onUploaded }: Props) {
   const [loading, setLoading] = useState(false);
   const { supabase } = useSupabase();
   const { user } = useUser();
+  const invalidateUploadedFiles = useInvalidateUploadedFiles();
 
   const { colorScheme } = useColorScheme();
   const isDark = colorScheme === "dark";
@@ -180,6 +182,9 @@ export default function AttachmentUploader({ roomId, onUploaded }: Props) {
           message_id: messages_data?.[0]?.message_id,
           file_id: uploaded_files_data?.[0]?.file_id,
         });
+
+      // React Query 캐시 무효화 - 새로운 파일이 업로드되었으므로 파일 목록을 새로고침
+      invalidateUploadedFiles();
 
       if (onUploaded) onUploaded(publicUrl, type);
     } catch (err: any) {

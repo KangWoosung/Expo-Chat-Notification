@@ -1,11 +1,14 @@
 import { View, Text } from "react-native";
 import React from "react";
 import { usePushToken } from "@/contexts/PushTokenProvider";
-import { ThemedText } from "@/components/ThemedText";
+import { useUser } from "@clerk/clerk-expo";
 
-const index = () => {
+const Index = () => {
   const { expoPushToken, notification, error, isLoading, isCachedToken } =
     usePushToken();
+  const { user: currentUser } = useUser();
+
+  console.log("====Index=====");
 
   return (
     <View
@@ -39,8 +42,14 @@ const index = () => {
           )}
         </>
       )}
+      <Text className="text-foreground dark:text-foreground-dark">
+        {JSON.stringify(currentUser?.id)}
+      </Text>
+      <Text className="text-foreground dark:text-foreground-dark">
+        이모네....
+      </Text>
     </View>
   );
 };
 
-export default index;
+export default Index;

@@ -79,4 +79,16 @@ npx expo install react-native-svg
 npx expo install victory-native
 
 ## Skia
-npx expo install @shopify/react-native-skia
+#npx expo install @shopify/react-native-skia
+
+## expo-blur
+npx expo install expo-blur
+
+## PDF
+npx expo install react-native-pdf
+npx expo install react-native-blob-util
+npx expo install react-native-pager-view
+
+## expo-image
+npx expo install expo-image
+

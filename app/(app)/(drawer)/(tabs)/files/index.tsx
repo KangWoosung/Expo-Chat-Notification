@@ -13,8 +13,10 @@ import { Ionicons } from "@expo/vector-icons";
 import { HEADER_ICON_SIZE } from "@/constants/constants";
 import { useColorScheme } from "nativewind";
 import { useUploadedFiles } from "@/hooks/useUploadedFiles";
+import { useIncomingFiles } from "@/hooks/useIncomingFiles";
 import { useStorageUsage } from "@/hooks/useStorageUsage";
 import { router } from "expo-router";
+import { FilesCategory, useTabsLayoutStore } from "@/zustand/tabsLayoutStore";
 
 const SCREEN_WIDTH = Dimensions.get("window").width;
 
@@ -26,13 +28,41 @@ const FilesIndex = () => {
     Math.round((SCREEN_WIDTH - 8) / 2)
   );
 
-  // React Query 훅 사용
+  // Zustand 스토어에서 파일 카테고리 상태 가져오기
+  const { filesCategory } = useTabsLayoutStore();
+
+  // React Query 훅 사용 - 카테고리에 따라 다른 훅 사용
+  const uploadedQuery = useUploadedFiles();
+  const incomingQuery = useIncomingFiles();
+
+  console.log("📊 Hook results:", {
+    uploadedQuery: uploadedQuery.status,
+    incomingQuery: incomingQuery.status,
+    currentCategory: filesCategory,
+  });
+
+  // 현재 활성화된 쿼리 선택
+  const currentQuery =
+    filesCategory === FilesCategory.UPLOADED ? uploadedQuery : incomingQuery;
+
+  // 그 객체에서 구조분해할당으로 값들을 추출
   const {
-    data: uploadedFiles = [],
+    data: files = [],
     isLoading: isLoadingFiles,
     error: filesError,
     refetch: refetchFiles,
-  } = useUploadedFiles();
+  } = currentQuery;
+
+  // 파일 데이터 변화 로그
+  // useEffect(() => {
+  //   console.log("=== Files data changed:", {
+  //     category: filesCategory,
+  //     filesCount: files.length,
+  //     files: files,
+  //     isLoading: isLoadingFiles,
+  //     hasError: !!filesError,
+  //   });
+  // }, [files, filesCategory, isLoadingFiles, filesError]);
 
   const { error: storageError } = useStorageUsage();
 
@@ -55,26 +85,6 @@ const FilesIndex = () => {
     <View className="flex-1 w-full bg-background dark:bg-background-dark">
       {/* Files sent - 상단 */}
       <View className="w-full overflow-hidden">
-        <TouchableOpacity
-          className={`w-full p-md border-b border-border dark:border-border-dark `}
-        >
-          <View className="flex-row w-full items-center gap-x-sm">
-            <Ionicons
-              name="cloud-upload-outline"
-              size={HEADER_ICON_SIZE}
-              color={foregroundTheme}
-            />
-            <Text className="text-lg font-bold text-foreground dark:text-foreground-dark flex-1">
-              Files sent
-            </Text>
-            <Ionicons
-              name="chevron-up"
-              size={HEADER_ICON_SIZE}
-              color={foregroundTheme}
-            />
-          </View>
-        </TouchableOpacity>
-
         {/* <GiftedBarChart /> */}
         {/* <GiftedPieChart
           data={storageUsageData}
@@ -130,7 +140,7 @@ const FilesIndex = () => {
                 const { width } = event.nativeEvent.layout;
                 setFileListWidth(width);
               }}
-              data={uploadedFiles}
+              data={files}
               renderItem={({ item, index }) => (
                 <View
                   className={`items-center justify-center ${index % 2 === 0 ? "mr-xs" : ""}`}
@@ -150,15 +160,30 @@ const FilesIndex = () => {
                     >
                       <Image
                         source={{ uri: item?.public_url || "" }}
-                        className="rounded-lg"
                         style={{
                           width: eachFileBoxWidth,
                           height: eachFileBoxWidth,
                           marginTop: 4,
                           borderRadius: 8,
+                          backgroundColor: "transparent",
                         }}
                         contentFit="cover"
-                        cachePolicy="disk"
+                        cachePolicy="memory-disk"
+                        priority="normal"
+                        onLoad={() =>
+                          console.log("✅ Thumbnail loaded:", item.file_name)
+                        }
+                        onError={(error) =>
+                          console.error(
+                            "❌ Thumbnail error:",
+                            error,
+                            item.file_name
+                          )
+                        }
+                        placeholder={{
+                          blurhash: "L6PZfSi_.AyE_3t7t7R**0o#DgR4",
+                        }}
+                        transition={150}
                       />
                     </Pressable>
                   ) : (

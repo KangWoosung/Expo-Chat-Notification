@@ -7,16 +7,14 @@ import { useColorScheme } from "nativewind";
 import tailwindColors from "@/utils/tailwindColors";
 
 const FilesLayout = () => {
-  const { id } = useLocalSearchParams();
-  console.log("====FilesLayout id=====", id);
-
-  const { fileId, setFileId, fileUrl, fileName } = useFileView();
+  const { id: fileId } = useLocalSearchParams();
+  const { setFileId, fileUrl, fileName, mimeType } = useFileView();
 
   useEffect(() => {
-    if (id) {
-      setFileId(id as string);
+    if (fileId) {
+      setFileId(fileId as string);
     }
-  }, [id]);
+  }, [fileId]);
 
   return (
     <Stack>

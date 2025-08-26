@@ -21,7 +21,7 @@ Zustand Store tabsLayoutStore 를 추가해 주었다.
 
 
 */
-import { Stack, Tabs } from "expo-router";
+import { router, Stack, Tabs } from "expo-router";
 import React from "react";
 
 import tailwindColors from "@/utils/tailwindColors";
@@ -31,21 +31,20 @@ import { useColorScheme } from "nativewind";
 import DrawerIcon from "@/components/navigator/DrawerIcon";
 import { HEADER_ICON_SIZE } from "@/constants/constants";
 import { useNavigationState } from "@react-navigation/native";
-import { TouchableOpacity, View } from "react-native";
+import { Text, TouchableOpacity, View } from "react-native";
+import { FilesCategory, useTabsLayoutStore } from "@/zustand/tabsLayoutStore";
+// import { useFileView } from "@/contexts/FileViewProvider";
 
 export default function TabLayout() {
-  // const { user } = useUser();
   const state = useNavigationState((state) => state);
+  const { filesCategory, setFilesCategory, notificationCount } =
+    useTabsLayoutStore();
 
   const currentRouteName =
     state.routes[state.index]?.state?.routes?.[
       state.routes[state.index]?.state?.index || 0
     ]?.name || "";
   console.log("====TabLayout currentRouteName=====", currentRouteName);
-
-  const hideTabBarScreens = ["chats/chat_room"]; // 여기에 숨기고 싶은 화면 이름 추가
-
-  const shouldHideTabBar = hideTabBarScreens.includes(currentRouteName);
 
   const { colorScheme } = useColorScheme();
   const isDark = colorScheme === "dark";
@@ -54,6 +53,11 @@ export default function TabLayout() {
     tailwindColors.background[isDark ? "secondaryDark" : "secondary"];
   const foregroundTheme =
     tailwindColors.foreground[isDark ? "secondaryDark" : "secondary"];
+
+  const fileViewerTitle =
+    filesCategory === FilesCategory.UPLOADED
+      ? "Uploaded Files"
+      : "Incoming Files";
 
   return (
     <Tabs
@@ -71,12 +75,9 @@ export default function TabLayout() {
         },
         headerTintColor: foregroundTheme,
         tabBarActiveTintColor: foregroundTheme,
-        tabBarStyle: shouldHideTabBar
-          ? { display: "none" }
-          : {
-              backgroundColor: backgroundTheme,
-            },
-        // detachInactiveScreens: true,
+        tabBarStyle: {
+          backgroundColor: backgroundTheme,
+        },
         tabBarInactiveTintColor: "gray",
       }}
       initialRouteName="index"
@@ -91,7 +92,7 @@ export default function TabLayout() {
           headerRight: () => (
             <IndexHeaderRight
               foregroundTheme={foregroundTheme}
-              backgroundTheme={backgroundTheme}
+              notificationCount={notificationCount}
             />
           ),
         }}
@@ -99,14 +100,15 @@ export default function TabLayout() {
       <Tabs.Screen
         name="files/index"
         options={{
-          title: "Files .....",
+          title: fileViewerTitle,
           tabBarIcon: ({ color, size }) => (
             <Ionicons name="document" color={color} size={size} />
           ),
           headerRight: () => (
             <UploadedFilesHeaderRight
               foregroundTheme={foregroundTheme}
-              backgroundTheme={backgroundTheme}
+              filesCategory={filesCategory}
+              setFilesCategory={setFilesCategory}
             />
           ),
         }}
@@ -119,10 +121,7 @@ export default function TabLayout() {
             <Ionicons name="chatbox" color={color} size={size} />
           ),
           headerRight: () => (
-            <ChatRoomsHeaderRight
-              foregroundTheme={foregroundTheme}
-              backgroundTheme={backgroundTheme}
-            />
+            <ChatRoomsHeaderRight foregroundTheme={foregroundTheme} />
           ),
         }}
       />
@@ -130,62 +129,100 @@ export default function TabLayout() {
   );
 }
 
+type IndexHeaderRightProps = {
+  foregroundTheme: string;
+  notificationCount: number;
+};
+
 // HeaderRight Components
 const IndexHeaderRight = ({
   foregroundTheme,
-  backgroundTheme,
+  notificationCount,
 }: {
   foregroundTheme: string;
-  backgroundTheme: string;
+  notificationCount: number;
 }) => {
   return (
     <View className="flex-row items-center gap-x-sm mr-sm">
-      <TouchableOpacity
-        onPress={() => {
-          console.log("====StackHeaderRight onPress=====");
-        }}
-        className="bg-background dark:bg-background-dark rounded-full p-sm"
-      >
-        <Ionicons
-          name="notifications-outline"
-          size={24}
-          color={foregroundTheme}
-        />
-      </TouchableOpacity>
+      {notificationCount > 0 ? (
+        <TouchableOpacity
+          onPress={() => {
+            console.log("====IndexHeaderRight onPress=====");
+            // @ts-ignore
+            router.push("chats/index");
+          }}
+          className="relative bg-background dark:bg-background-dark rounded-full p-sm"
+        >
+          <Ionicons
+            name="notifications-outline"
+            size={HEADER_ICON_SIZE}
+            color={foregroundTheme}
+          />
+          <Text
+            className="absolute -top-[-2px] -right-[-0px] bg-red-500 rounded-full 
+            w-[20px] h-[20px] text-center pt-[2px] items-center justify-center
+            text-white text-sm font-bold"
+          >
+            {notificationCount}
+          </Text>
+        </TouchableOpacity>
+      ) : (
+        <View className="bg-background dark:bg-background-dark rounded-full p-sm">
+          <Ionicons
+            name="notifications-outline"
+            size={HEADER_ICON_SIZE}
+            color={foregroundTheme}
+          />
+        </View>
+      )}
     </View>
   );
 };
 
+type UploadedFilesHeaderRightProps = {
+  foregroundTheme: string;
+  filesCategory: FilesCategory;
+  setFilesCategory: (category: FilesCategory) => void;
+};
+
 const UploadedFilesHeaderRight = ({
   foregroundTheme,
-  backgroundTheme,
-}: {
-  foregroundTheme: string;
-  backgroundTheme: string;
-}) => {
+  filesCategory,
+  setFilesCategory,
+}: UploadedFilesHeaderRightProps) => {
   return (
     <View className="flex-row items-center gap-x-sm mr-sm">
       <TouchableOpacity
         onPress={() => {
-          console.log("====StackHeaderRight onPress=====");
+          setFilesCategory(FilesCategory.UPLOADED);
+          console.log("=== Header: Set category to UPLOADED");
         }}
-        className="bg-background dark:bg-background-dark rounded-full p-sm"
+        className={`bg-background dark:bg-background-dark rounded-full p-sm ${
+          filesCategory === FilesCategory.UPLOADED
+            ? "bg-primary dark:bg-primary-dark"
+            : ""
+        }`}
       >
         <Ionicons
           name="cloud-upload-outline"
-          size={24}
+          size={HEADER_ICON_SIZE}
           color={foregroundTheme}
         />
       </TouchableOpacity>
       <TouchableOpacity
         onPress={() => {
-          console.log("====StackHeaderRight onPress=====");
+          setFilesCategory(FilesCategory.INCOMING);
+          console.log("=== Header: Set category to INCOMING");
         }}
-        className="bg-background dark:bg-background-dark rounded-full p-sm"
+        className={`bg-background dark:bg-background-dark rounded-full p-sm ${
+          filesCategory === FilesCategory.INCOMING
+            ? "bg-primary dark:bg-primary-dark"
+            : ""
+        }`}
       >
         <Ionicons
           name="cloud-download-outline"
-          size={24}
+          size={HEADER_ICON_SIZE}
           color={foregroundTheme}
         />
       </TouchableOpacity>
@@ -195,10 +232,8 @@ const UploadedFilesHeaderRight = ({
 
 const ChatRoomsHeaderRight = ({
   foregroundTheme,
-  backgroundTheme,
 }: {
   foregroundTheme: string;
-  backgroundTheme: string;
 }) => {
   return (
     <View className="flex-row items-center gap-x-sm mr-sm">
@@ -210,7 +245,7 @@ const ChatRoomsHeaderRight = ({
       >
         <Ionicons
           name="notifications-outline"
-          size={24}
+          size={HEADER_ICON_SIZE}
           color={foregroundTheme}
         />
       </TouchableOpacity>
@@ -220,7 +255,11 @@ const ChatRoomsHeaderRight = ({
         }}
         className="bg-background dark:bg-background-dark rounded-full p-sm"
       >
-        <Ionicons name="add-outline" size={24} color={foregroundTheme} />
+        <Ionicons
+          name="add-outline"
+          size={HEADER_ICON_SIZE}
+          color={foregroundTheme}
+        />
       </TouchableOpacity>
     </View>
   );

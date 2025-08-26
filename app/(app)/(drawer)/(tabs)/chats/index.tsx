@@ -12,7 +12,7 @@ import { Link, router } from "expo-router";
 import tailwindColors from "@/utils/tailwindColors";
 import { useSupabase } from "@/contexts/SupabaseProvider";
 import { DEFAULT_AVATAR } from "@/constants/constants";
-import { Tables } from "@/supabase/supabase";
+import { Tables } from "@/db/supabase/supabase";
 import { useUser } from "@clerk/clerk-expo";
 import { Ionicons } from "@expo/vector-icons";
 

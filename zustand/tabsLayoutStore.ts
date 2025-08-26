@@ -1,6 +1,8 @@
 /*
 2025-08-24 19:42:38
 
+uploaded, incoming 각 카테고리의 파일 목록이,  
+setFilesCategory 이벤트에 자동으로 변경되어야 하는데,
 
 
 */
@@ -9,7 +11,10 @@
 import { create } from "zustand";
 
 // files category
-export type FilesCategory = "uploaded" | "incoming";
+export enum FilesCategory {
+  UPLOADED = "uploaded",
+  INCOMING = "incoming",
+}
 
 // chat room create data
 export type ChatRoomCreateData = {
@@ -44,7 +49,7 @@ export interface TabsLayoutState {
 
 const initialState = {
   // 카운트는 0부터 시작
-  notificationCount: 0,
+  notificationCount: 99,
   chatNotificationCount: 0,
 
   // 파일 카테고리는 'uploaded'가 기본값 (타입과 일치시킴)
@@ -66,8 +71,10 @@ export const useTabsLayoutStore = create<TabsLayoutState>()((set, get) => ({
   setChatNotificationCount: (count: number) =>
     set({ chatNotificationCount: count }),
 
-  setFilesCategory: (category: FilesCategory) =>
-    set({ filesCategory: category }),
+  setFilesCategory: (category: FilesCategory) => {
+    console.log("=== Zustand: setFilesCategory called with:", category);
+    set({ filesCategory: category });
+  },
 
   // 🚀 비즈니스 로직 메서드들
   createChatRoom: async (data: ChatRoomCreateData) => {

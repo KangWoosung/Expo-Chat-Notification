@@ -92,3 +92,5 @@ npx expo install react-native-pager-view
 ## expo-image
 npx expo install expo-image
 
+## expo-media-library
+npx expo install expo-media-library

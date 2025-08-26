@@ -1,5 +1,6 @@
 import { DEFAULT_AVATAR } from "@/constants/constants";
-import { Image, Text, View } from "react-native";
+import { Text, View } from "react-native";
+import { Image } from "expo-image";
 import { useEffect, useState } from "react";
 import { Tables } from "@/db/supabase/supabase";
 import { Ionicons } from "@expo/vector-icons";
@@ -74,7 +75,19 @@ export default function EachMessage({
           ) : message.message_type === "image" ? (
             <Image
               source={{ uri: message.content }}
-              className="w-[150px] h-[150px] rounded-md object-contain"
+              style={{
+                width: 150,
+                height: 150,
+                borderRadius: 8,
+                backgroundColor: "transparent",
+              }}
+              contentFit="cover"
+              cachePolicy="memory-disk"
+              priority="normal"
+              placeholder={{
+                blurhash: "L6PZfSi_.AyE_3t7t7R**0o#DgR4",
+              }}
+              transition={150}
             />
           ) : (
             <Ionicons name="document-text-outline" size={36} color="white" />

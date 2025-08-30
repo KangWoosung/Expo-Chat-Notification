@@ -48,6 +48,7 @@ const FileViewerHeaderRight = ({
   const { supabase } = useSupabase();
   const { fileId, setFileId, fileUrl, fileName } = useFileView();
   const { user } = useUser();
+  const { filesCategory } = useTabsLayoutStore();
 
   if (!supabase || !user) {
     console.error("====StackHeaderRight supabase or user not available=====");
@@ -65,23 +66,31 @@ const FileViewerHeaderRight = ({
       >
         <Ionicons name="download-outline" size={24} color={foregroundTheme} />
       </TouchableOpacity>
-      <TouchableOpacity
-        onPress={() => {
-          console.log("====StackHeaderRight onPress=====");
-          deleteFileCompletely({
-            supabase,
-            fileId: fileId,
-            userId: user.id,
-          });
-        }}
-        className="bg-background dark:bg-background-dark rounded-full p-sm"
-      >
+      {filesCategory === FilesCategory.UPLOADED ? (
+        <TouchableOpacity
+          onPress={() => {
+            console.log("====StackHeaderRight onPress=====");
+            deleteFileCompletely({
+              supabase,
+              fileId: fileId,
+              userId: user.id,
+            });
+          }}
+          className="bg-background dark:bg-background-dark rounded-full p-sm"
+        >
+          <Ionicons
+            name="trash-outline"
+            size={HEADER_ICON_SIZE}
+            color={foregroundTheme}
+          />
+        </TouchableOpacity>
+      ) : (
         <Ionicons
-          name="trash-outline"
+          name="ban-outline"
           size={HEADER_ICON_SIZE}
           color={foregroundTheme}
         />
-      </TouchableOpacity>
+      )}
     </View>
   );
 };

@@ -2,7 +2,6 @@ import React, { useState } from "react";
 import { View, ActivityIndicator, Alert, TouchableOpacity } from "react-native";
 import * as ImagePicker from "expo-image-picker";
 import * as DocumentPicker from "expo-document-picker";
-import * as FileSystem from "expo-file-system";
 import { useSupabase } from "@/contexts/SupabaseProvider";
 import { Ionicons } from "@expo/vector-icons";
 import { useColorScheme } from "nativewind";
@@ -13,7 +12,6 @@ import {
   FILE_UPLOAD_LIMIT,
 } from "@/constants/usageLimits";
 import { useUser } from "@clerk/clerk-expo";
-import { decodeJwt } from "jose";
 import { MessageEnumType, mimeTypeToEnum } from "@/utils/mimeTypeToEnum";
 import { useInvalidateUploadedFiles } from "@/hooks/useUploadedFiles";
 
@@ -146,20 +144,7 @@ export default function AttachmentUploader({ roomId, onUploaded }: Props) {
       const publicUrl = publicUrlData.publicUrl;
       console.log("publicUrl:", publicUrl);
 
-      // Save message to database
-      const { error: messages_insertError, data: messages_data } =
-        await supabase
-          .from("messages")
-          .insert({
-            room_id: roomId,
-            sender_id: user.id,
-            content: publicUrl,
-            message_type: messageType,
-          })
-          .select(); // Return all columns
-      if (messages_insertError) throw messages_insertError;
-
-      // uploaded_files table
+      // 🚀 1. uploaded_files 테이블에 파일 정보 먼저 저장
       const { error: uploaded_files_insertError, data: uploaded_files_data } =
         await supabase
           .from("uploaded_files")
@@ -171,17 +156,26 @@ export default function AttachmentUploader({ roomId, onUploaded }: Props) {
             storage_path: path,
             public_url: publicUrl,
           })
-          .select(); // Return all columns
+          .select()
+          .single(); // single()로 하나의 결과만 받기
+
       if (uploaded_files_insertError) throw uploaded_files_insertError;
 
-      // message_files table
-      // 이미지와 연결된 메시지, 즉 바로 위에서 "messages" 테이블에 insert 한 messate_id
-      const { error: message_files_insertError } = await supabase
-        .from("message_files")
+      // 🚀 2. messages 테이블에 file_id와 함께 저장 (한 번의 INSERT로 완료!)
+      const { error: messages_insertError } = await supabase
+        .from("messages")
         .insert({
-          message_id: messages_data?.[0]?.message_id,
-          file_id: uploaded_files_data?.[0]?.file_id,
+          room_id: roomId,
+          sender_id: user.id,
+          content: publicUrl,
+          message_type: messageType,
+          file_id: uploaded_files_data.file_id, // ✅ 직접 저장!
         });
+
+      if (messages_insertError) throw messages_insertError;
+
+      // ❌ message_files 테이블에 별도 INSERT 불필요!
+      // 기존 코드 제거됨
 
       // React Query 캐시 무효화 - 새로운 파일이 업로드되었으므로 파일 목록을 새로고침
       invalidateUploadedFiles();

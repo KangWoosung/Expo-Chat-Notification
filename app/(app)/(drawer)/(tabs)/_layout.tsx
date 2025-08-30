@@ -29,7 +29,7 @@ import tailwindColors from "@/utils/tailwindColors";
 import { Ionicons } from "@expo/vector-icons";
 import { useColorScheme } from "nativewind";
 import DrawerIcon from "@/components/navigator/DrawerIcon";
-import { HEADER_ICON_SIZE } from "@/constants/constants";
+import { APP_NAME, HEADER_ICON_SIZE } from "@/constants/constants";
 import { useNavigationState } from "@react-navigation/native";
 import { Text, TouchableOpacity, View } from "react-native";
 import { FilesCategory, useTabsLayoutStore } from "@/zustand/tabsLayoutStore";
@@ -57,7 +57,9 @@ export default function TabLayout() {
   const fileViewerTitle =
     filesCategory === FilesCategory.UPLOADED
       ? "Uploaded Files"
-      : "Incoming Files";
+      : filesCategory === FilesCategory.INCOMING
+        ? "Incoming Files"
+        : "Files";
 
   return (
     <Tabs
@@ -85,7 +87,7 @@ export default function TabLayout() {
       <Tabs.Screen
         name="index"
         options={{
-          title: "Home",
+          title: APP_NAME,
           tabBarIcon: ({ color, size }) => (
             <Ionicons name="home" color={color} size={size} />
           ),

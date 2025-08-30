@@ -4,6 +4,9 @@ import { useState } from "react";
 import { Modal, Pressable, Text, TouchableOpacity, View } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { HEADER_ICON_SIZE } from "@/constants/constants";
+import { useTabsLayoutStore } from "@/zustand/tabsLayoutStore";
+import { useChatRoom } from "@/contexts/ChatRoomProvider";
+import { useUser } from "@clerk/clerk-expo";
 
 export default function ChatRoomSubmenuTrigger({
   chatRoomId,
@@ -13,6 +16,8 @@ export default function ChatRoomSubmenuTrigger({
   const [showMenu, setShowMenu] = useState(false);
   const { colorScheme } = useColorScheme();
   const isDark = colorScheme === "dark";
+  const { createdBy, opponentUsers } = useChatRoom();
+  const { user: currentUser } = useUser();
 
   const foregroundTheme =
     tailwindColors.foreground[isDark ? "secondaryDark" : "secondary"];
@@ -23,6 +28,24 @@ export default function ChatRoomSubmenuTrigger({
     console.log("Invite user pressed for chat room:", chatRoomId);
     setShowMenu(false);
     // 여기에 사용자 초대 로직을 추가할 수 있습니다
+  };
+
+  const handleBanUser = () => {
+    console.log("Ban user pressed for chat room:", chatRoomId);
+    setShowMenu(false);
+    // 여기에 사용자 차단 로직을 추가할 수 있습니다
+  };
+
+  const handleRenameChatRoom = () => {
+    console.log("Rename chat room pressed for chat room:", chatRoomId);
+    setShowMenu(false);
+    // 여기에 채팅방 이름 변경 로직을 추가할 수 있습니다
+  };
+
+  const handleLeaveChatRoom = () => {
+    console.log("Leave chat room pressed for chat room:", chatRoomId);
+    setShowMenu(false);
+    // 여기에 채팅방 나가기 로직을 추가할 수 있습니다
   };
 
   const handleCloseMenu = () => {
@@ -75,7 +98,7 @@ export default function ChatRoomSubmenuTrigger({
               </Text>
             </TouchableOpacity>
             <TouchableOpacity
-              onPress={handleInviteUser}
+              onPress={handleBanUser}
               className="flex flex-row items-center gap-x-sm p-2 rounded-lg"
             >
               <Ionicons
@@ -87,21 +110,23 @@ export default function ChatRoomSubmenuTrigger({
                 Ban user
               </Text>
             </TouchableOpacity>
+            {createdBy === currentUser?.id ? (
+              <TouchableOpacity
+                onPress={handleRenameChatRoom}
+                className="flex flex-row items-center gap-x-sm p-2 rounded-lg"
+              >
+                <Ionicons
+                  name="document-text-outline"
+                  size={HEADER_ICON_SIZE}
+                  color={foregroundTheme}
+                />
+                <Text className="text-foreground dark:text-foreground-dark font-semibold text-lg">
+                  Rename chat room
+                </Text>
+              </TouchableOpacity>
+            ) : null}
             <TouchableOpacity
-              onPress={handleInviteUser}
-              className="flex flex-row items-center gap-x-sm p-2 rounded-lg"
-            >
-              <Ionicons
-                name="document-text-outline"
-                size={HEADER_ICON_SIZE}
-                color={foregroundTheme}
-              />
-              <Text className="text-foreground dark:text-foreground-dark font-semibold text-lg">
-                Rename chat room
-              </Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              onPress={handleInviteUser}
+              onPress={handleLeaveChatRoom}
               className="flex flex-row items-center gap-x-sm p-2 rounded-lg"
             >
               <Ionicons
@@ -110,7 +135,9 @@ export default function ChatRoomSubmenuTrigger({
                 color={foregroundTheme}
               />
               <Text className="text-foreground dark:text-foreground-dark font-semibold text-lg">
-                Delete chat room
+                {createdBy === currentUser?.id
+                  ? "Delete chat room"
+                  : "Leave chat room"}
               </Text>
             </TouchableOpacity>
           </View>

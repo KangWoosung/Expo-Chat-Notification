@@ -4,6 +4,8 @@ export const SSO_SCHEME_NAME =
   Constants.expoConfig?.android?.package || "com.gunymedian.notification_try07";
 export const REDIRECT_URI = "sso-callback";
 
+export const APP_NAME = "Expo Notification";
+
 export const DEFAULT_AVATAR =
   "https://firebasestorage.googleapis.com/v0/b/notification-try01.appspot.com/o/default-avatar.png?alt=media&token=00000000-0000-0000-0000-000000000000";
 
@@ -21,3 +23,6 @@ export const THEME_TOGGLER_BUTTON_SIZE = 24;
 export const MESSAGES_PER_PAGE = 10;
 
 export const FILE_DELETED_CONTENT_TEXT = "파일이 삭제되었습니다";
+
+// UI
+export const CHAT_ROOM_AVATAR_SIZE = 40;

@@ -20,14 +20,17 @@ import React, { useEffect, useState, useRef } from "react";
 import { useLocalSearchParams } from "expo-router";
 import { useSupabase } from "@/contexts/SupabaseProvider";
 import { useUser } from "@clerk/clerk-expo";
-import { Tables } from "@/db/supabase/supabase";
+// import { Tables } from "@/db/supabase/supabase"; // 불필요
 import { useChatRoom } from "@/contexts/ChatRoomProvider";
 import { dummyUsers, dummyMessages } from "@/constants/dummyData";
 import EachMessage from "@/components/chatRoom/EachMessage";
 import InputArea from "@/components/chatRoom/InputArea";
 import ChatRoomLoading from "@/components/chatRoom/ChatRoomLoading";
-
-type Message = Tables<"messages">;
+import {
+  useImprovedChatRoomMessages,
+  improvedMessagesKeys,
+} from "@/hooks/useImprovedChatRoomMessages";
+import { useQueryClient } from "@tanstack/react-query";
 
 const ChatRoom = () => {
   const { id: chatRoomId } = useLocalSearchParams<{ id: string }>();
@@ -37,10 +40,22 @@ const ChatRoom = () => {
 
   // Message States & Refs
   const [message, setMessage] = useState("");
-  const [messages, setMessages] = useState<Message[]>([]);
   const scrollViewRef = useRef<ScrollView>(null);
   const inputRef = useRef<TextInput | null>(null);
-  const [messagesLoading, setMessagesLoading] = useState(false);
+
+  // 🚀 개선된 메시지 쿼리 (file_id 직접 접근)
+  const {
+    data: messages = [],
+    isLoading: messagesLoading,
+    error: messagesError,
+  } = useImprovedChatRoomMessages(chatRoomId || "", true);
+
+  const queryClient = useQueryClient();
+  const invalidateMessages = (roomId: string) => {
+    queryClient.invalidateQueries({
+      queryKey: improvedMessagesKeys.room(roomId),
+    });
+  };
 
   // Set the chatRoomId from params to context
   useEffect(() => {
@@ -49,29 +64,12 @@ const ChatRoom = () => {
     }
   }, [chatRoomId, setChatRoomId]);
 
-  // Fetch messages from Supabase
+  // 메시지 에러 처리
   useEffect(() => {
-    if (!supabase || !chatRoomId) return;
-
-    const fetchMessages = async () => {
-      setMessagesLoading(true);
-      const { data, error, status } = await supabase
-        .from("messages")
-        .select("*")
-        .eq("room_id", chatRoomId)
-        .order("sent_at", { ascending: true });
-      if (error) {
-        console.error("Error fetching messages:", error);
-      } else if (status === 200) {
-        setMessages(data || []);
-        setMessagesLoading(false);
-      } else {
-        console.error("Error fetching messages:", status, error);
-        setMessagesLoading(false);
-      }
-    };
-    fetchMessages();
-  }, [chatRoomId, supabase]);
+    if (messagesError) {
+      console.error("Error fetching messages:", messagesError);
+    }
+  }, [messagesError]);
 
   // Send message to Supabase
   const handleSendMessage = async () => {
@@ -88,6 +86,11 @@ const ChatRoom = () => {
         } else {
           setMessage("");
           inputRef.current?.clear();
+
+          // 메시지 캐시 무효화로 새로운 메시지 포함해서 다시 로드
+          if (chatRoomId) {
+            invalidateMessages(chatRoomId);
+          }
         }
       } catch (error) {
         console.error("Error sending message:", error);

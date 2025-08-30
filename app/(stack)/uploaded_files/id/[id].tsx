@@ -4,6 +4,9 @@ import { useFileView } from "@/contexts/FileViewProvider";
 import { WebView } from "react-native-webview";
 import Pdf from "react-native-pdf";
 import { Image } from "expo-image";
+import Animated from "react-native-reanimated";
+
+const AnimatedImage = Animated.createAnimatedComponent(Image);
 
 const FileViewer = () => {
   const { fileId, fileUrl, fileName, mimeType, isLoading, error } =
@@ -70,7 +73,7 @@ const FileViewer = () => {
       {mimeType.startsWith("image/") ? (
         //* Image file *//
         <View style={{ flex: 1, padding: 0 }}>
-          <Image
+          <AnimatedImage
             source={{ uri: fileUrl }}
             style={{
               width: "100%",
@@ -85,6 +88,7 @@ const FileViewer = () => {
             }}
             placeholder={{ blurhash: "L6PZfSi_.AyE_3t7t7R**0o#DgR4" }}
             transition={200}
+            sharedTransitionTag={`image-${fileId}`}
           />
         </View>
       ) : mimeType.startsWith("application/pdf") ? (

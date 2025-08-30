@@ -2,7 +2,10 @@ import { useQuery } from "@tanstack/react-query";
 import { useSupabase } from "@/contexts/SupabaseProvider";
 import { useUser } from "@clerk/clerk-expo";
 import { Tables } from "@/db/supabase/supabase";
-import { FILE_UPLOAD_LIMIT } from "@/constants/usageLimits";
+import {
+  FILE_UPLOAD_LIMIT,
+  FILE_UPLOAD_COUNT_LIMIT,
+} from "@/constants/usageLimits";
 
 type StorageUsage = Tables<"user_storage_usage">;
 
@@ -27,7 +30,7 @@ export function useStorageUsage() {
     queryKey: storageUsageKeys.user(currentUser?.id || ""),
     queryFn: async (): Promise<{
       storageUsage: number;
-      chartData: ChartDataType[];
+      fileCountUsage: number;
     }> => {
       if (!supabase || !currentUser?.id) {
         throw new Error("Supabase client or user not available");
@@ -44,23 +47,11 @@ export function useStorageUsage() {
       }
 
       const totalFileSize = storageUsage?.[0]?.total_file_size || 0;
-
-      const chartData: ChartDataType[] = [
-        {
-          label: "Used",
-          value: totalFileSize,
-          color: "rgba(131, 167, 234, 1)",
-        },
-        {
-          label: "Available",
-          value: FILE_UPLOAD_LIMIT - totalFileSize,
-          color: "rgb(40, 64, 167)",
-        },
-      ];
+      const totalFileCount = storageUsage?.[0]?.total_file_count || 0;
 
       return {
         storageUsage: totalFileSize,
-        chartData,
+        fileCountUsage: totalFileCount,
       };
     },
     enabled: !!supabase && !!currentUser?.id,

@@ -69,17 +69,6 @@ npx expo install jose
 ## Tanstack Query
 npx expo install @tanstack/react-query
 
-## Chart Kit
-npx expo install react-native-chart-kit
-
-## SVG
-npx expo install react-native-svg
-
-## Victory Native
-npx expo install victory-native
-
-## Skia
-#npx expo install @shopify/react-native-skia
 
 ## expo-blur
 npx expo install expo-blur
@@ -94,3 +83,29 @@ npx expo install expo-image
 
 ## expo-media-library
 npx expo install expo-media-library
+
+
+## Tailwind-Merge & clsx & Class Varience Authority 
+npx expo install tailwindcss clsx 
+npx expo install tailwind-merge
+
+## expo-network
+npx expo install expo-network
+
+## date-fns
+npx expo install date-fns
+
+## Chart Kit
+npx expo install react-native-chart-kit
+
+## SVG
+npx expo install react-native-svg
+
+## Victory Native
+# npx expo install victory-native
+
+## Skia
+#npx expo install @shopify/react-native-skia
+
+## Gifted-Charts
+npm install react-native-gifted-charts react-native-linear-gradient react-native-svg

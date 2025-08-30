@@ -7,6 +7,7 @@ import {
   Pressable,
 } from "react-native";
 import { Image } from "expo-image";
+import Animated from "react-native-reanimated";
 import React, { useEffect, useState } from "react";
 import tailwindColors from "@/utils/tailwindColors";
 import { Ionicons } from "@expo/vector-icons";
@@ -17,6 +18,8 @@ import { useIncomingFiles } from "@/hooks/useIncomingFiles";
 import { useStorageUsage } from "@/hooks/useStorageUsage";
 import { router } from "expo-router";
 import { FilesCategory, useTabsLayoutStore } from "@/zustand/tabsLayoutStore";
+
+const AnimatedImage = Animated.createAnimatedComponent(Image);
 
 const SCREEN_WIDTH = Dimensions.get("window").width;
 
@@ -158,7 +161,7 @@ const FilesIndex = () => {
                         })
                       }
                     >
-                      <Image
+                      <AnimatedImage
                         source={{ uri: item?.public_url || "" }}
                         style={{
                           width: eachFileBoxWidth,
@@ -184,6 +187,7 @@ const FilesIndex = () => {
                           blurhash: "L6PZfSi_.AyE_3t7t7R**0o#DgR4",
                         }}
                         transition={150}
+                        sharedTransitionTag={`image-${item.file_id}`}
                       />
                     </Pressable>
                   ) : (

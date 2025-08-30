@@ -10,6 +10,7 @@ interface ChatRoomContextType {
   chatRoomId: string | null;
   opponentUser: User | null;
   opponentUsers: User[];
+  createdBy: string | null;
   loading: boolean;
   setChatRoomId: (id: string) => void;
 }
@@ -22,6 +23,7 @@ export function ChatRoomProvider({ children }: { children: React.ReactNode }) {
   const { supabase } = useSupabase();
   const { user: currentUser } = useUser();
   const [chatRoomId, setChatRoomId] = useState<string | null>(null);
+  const [createdBy, setCreatedBy] = useState<string | null>(null);
   const [chatRoomName, setChatRoomName] = useState<string>("");
   const [opponentUser, setOpponentUser] = useState<User | null>(null);
   const [opponentUsers, setOpponentUsers] = useState<User[]>([]);
@@ -35,6 +37,22 @@ export function ChatRoomProvider({ children }: { children: React.ReactNode }) {
 
     (async () => {
       setLoading(true);
+
+      // get chat room data
+      const { data: chatRoomData, error: chatRoomError } = await supabase
+        .from("chat_rooms")
+        .select("*")
+        .eq("room_id", chatRoomId)
+        .single();
+
+      if (chatRoomError) {
+        console.error("Error fetching chat room:", chatRoomError);
+        setLoading(false);
+        return;
+      }
+
+      setCreatedBy(chatRoomData.created_by);
+
       const { data: chatRoomMembersData, error: chatRoomMembersError } =
         await supabase
           .from("chat_room_members")
@@ -115,6 +133,7 @@ export function ChatRoomProvider({ children }: { children: React.ReactNode }) {
         chatRoomId,
         opponentUser,
         opponentUsers,
+        createdBy,
         loading,
         setChatRoomId,
       }}

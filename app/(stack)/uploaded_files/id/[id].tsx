@@ -5,6 +5,7 @@ import { WebView } from "react-native-webview";
 import Pdf from "react-native-pdf";
 import { Image } from "expo-image";
 import Animated from "react-native-reanimated";
+import { useAnimationStore } from "@/zustand/useAnimationStore";
 
 const AnimatedImage = Animated.createAnimatedComponent(Image);
 
@@ -14,12 +15,6 @@ const FileViewer = () => {
 
   useEffect(() => {
     console.log("====FileViewer Debug Info=====");
-    console.log("fileId:", fileId);
-    console.log("mimeType:", mimeType);
-    console.log("fileUrl:", fileUrl);
-    console.log("fileName:", fileName);
-    console.log("isLoading:", isLoading);
-    console.log("error:", error);
   }, [fileId, mimeType, fileUrl, fileName, isLoading, error]);
 
   // 로딩 상태

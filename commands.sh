@@ -109,3 +109,9 @@ npx expo install react-native-svg
 
 ## Gifted-Charts
 npm install react-native-gifted-charts react-native-linear-gradient react-native-svg
+
+## Bottom Sheet
+npx expo install @gorhom/bottom-sheet@^5
+
+## Checkbox
+npx expo install @react-native-community/checkbox

@@ -1,22 +1,27 @@
-import { View, Text } from "react-native";
-import React from "react";
+import { View, Text, StyleProp, ViewStyle } from "react-native";
+import React, { useEffect } from "react";
 import { DEFAULT_AVATAR } from "@/constants/constants";
 import { Image } from "expo-image";
 import { Tables } from "@/db/supabase/supabase";
 import BadgeWithIcon from "../ui/BadgeWithIcon";
 import { hexToRgba } from "@/utils/hexToRgba";
 import useIsOnline from "@/hooks/useIsOnline";
+import { cn } from "@/lib/utils";
 
 type InitScreenUserCardProps = {
   currentUser: any;
   isDark: boolean;
   expoPushToken: string;
+  className?: string;
+  style?: StyleProp<ViewStyle>;
 };
 
 const InitScreenUserCard = ({
   currentUser,
   isDark,
   expoPushToken,
+  className,
+  style,
 }: InitScreenUserCardProps) => {
   const isOnline = useIsOnline();
   // const isOnline = false;
@@ -24,11 +29,16 @@ const InitScreenUserCard = ({
   console.log("currentUser", currentUser.username);
   console.log("isOnline", isOnline);
 
+  if (isOnline === null) {
+    return <Text>Loading...</Text>;
+  }
+
   return (
     <View
-      className="flex flex-row items-center justify-start gap-md w-full
+      className={cn(`flex flex-row items-center justify-start gap-lg w-full
       p-lg pt-2xl
-    "
+    ${className}`)}
+      style={style}
     >
       <View className="flex items-center justify-center">
         <Image

@@ -18,7 +18,6 @@ Navigation Titles Rules...
 import { View, ScrollView, TextInput } from "react-native";
 import React, { useEffect, useState, useRef } from "react";
 import { useLocalSearchParams } from "expo-router";
-import { useSupabase } from "@/contexts/SupabaseProvider";
 import { useUser } from "@clerk/clerk-expo";
 // import { Tables } from "@/db/supabase/supabase"; // 불필요
 import { useChatRoom } from "@/contexts/ChatRoomProvider";
@@ -26,15 +25,11 @@ import { dummyUsers, dummyMessages } from "@/constants/dummyData";
 import EachMessage from "@/components/chatRoom/EachMessage";
 import InputArea from "@/components/chatRoom/InputArea";
 import ChatRoomLoading from "@/components/chatRoom/ChatRoomLoading";
-import {
-  useImprovedChatRoomMessages,
-  improvedMessagesKeys,
-} from "@/hooks/useImprovedChatRoomMessages";
-import { useQueryClient } from "@tanstack/react-query";
+import { useImprovedChatRoomMessages } from "@/hooks/useImprovedChatRoomMessages";
+import { useSendMessageWithState } from "@/hooks/useSendMessage";
 
 const ChatRoom = () => {
   const { id: chatRoomId } = useLocalSearchParams<{ id: string }>();
-  const { supabase } = useSupabase();
   const { user: currentUser } = useUser();
   const { opponentUser, opponentUsers, setChatRoomId } = useChatRoom();
 
@@ -50,12 +45,12 @@ const ChatRoom = () => {
     error: messagesError,
   } = useImprovedChatRoomMessages(chatRoomId || "", true);
 
-  const queryClient = useQueryClient();
-  const invalidateMessages = (roomId: string) => {
-    queryClient.invalidateQueries({
-      queryKey: improvedMessagesKeys.room(roomId),
-    });
-  };
+  // 🚀 useMutation을 활용한 메시지 전송
+  const {
+    sendMessage,
+    isLoading: isSending,
+    error: sendError,
+  } = useSendMessageWithState();
 
   // Set the chatRoomId from params to context
   useEffect(() => {
@@ -71,31 +66,20 @@ const ChatRoom = () => {
     }
   }, [messagesError]);
 
-  // Send message to Supabase
+  // 🚀 useMutation을 활용한 최적화된 메시지 전송
   const handleSendMessage = async () => {
-    if (!message.trim() || !currentUser?.id || !supabase) return;
-    (async () => {
-      try {
-        const { error } = await supabase.from("messages").insert({
-          content: message,
-          sender_id: currentUser.id,
-          room_id: chatRoomId,
-        });
-        if (error) {
-          console.error("Error sending message:", error);
-        } else {
-          setMessage("");
-          inputRef.current?.clear();
+    if (!message.trim() || !chatRoomId || isSending) return;
 
-          // 메시지 캐시 무효화로 새로운 메시지 포함해서 다시 로드
-          if (chatRoomId) {
-            invalidateMessages(chatRoomId);
-          }
-        }
-      } catch (error) {
-        console.error("Error sending message:", error);
-      }
-    })();
+    const result = await sendMessage({
+      content: message,
+      roomId: chatRoomId,
+      messageType: "text",
+    });
+
+    if (result.success) {
+      setMessage("");
+      inputRef.current?.clear();
+    }
   };
 
   if (messagesLoading) {
@@ -148,6 +132,8 @@ const ChatRoom = () => {
         handleSendMessage={handleSendMessage}
         inputRef={inputRef}
         chatRoomId={chatRoomId}
+        isLoading={isSending}
+        error={sendError?.message}
       />
     </View>
   );

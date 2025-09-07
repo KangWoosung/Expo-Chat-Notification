@@ -1,13 +1,8 @@
-import { View, Text } from "react-native";
+import { View } from "react-native";
 import React from "react";
 import { PieChart } from "react-native-gifted-charts";
-import { FILE_UPLOAD_LIMIT } from "@/constants/usageLimits";
 import { useColorScheme } from "nativewind";
 import tailwindColors from "@/utils/tailwindColors";
-
-type GiftedPieChartProps = {
-  data?: any | undefined;
-};
 
 const PieTooltipDefaults = {
   tooltipWidth: undefined, // takes the width of the tooltip text
@@ -90,11 +85,13 @@ type PieChartConfigType = {
 type GiftedPieChartPropsType = {
   data?: PieChartDataType[];
   config?: PieChartConfigType | any;
+  className?: string;
 };
 
 const GiftedPieChart = ({
   data = defaultChartData as PieChartDataType[],
   config = defaultPieChartConfig as PieChartConfigType,
+  className = "",
 }: GiftedPieChartPropsType) => {
   const { colorScheme } = useColorScheme();
   const isDark = colorScheme === "dark";
@@ -103,16 +100,14 @@ const GiftedPieChart = ({
     ...config,
   };
 
-  const foregroundTheme =
-    tailwindColors.foreground[isDark ? "secondaryDark" : "secondary"];
   const strokeColorTheme =
     tailwindColors.background[isDark ? "secondaryDark" : "blank"];
 
   return (
     <View
-      className="flex w-full items-center justify-center p-sm py-0
+      className={`flex w-full items-center justify-center p-sm py-0
       w-full max-w-full max-h-full object-contain
-      border-0 border-yellow-500"
+      border-0 border-yellow-500 ${className}`}
       style={{ width: 160, height: 160 }}
     >
       <PieChart

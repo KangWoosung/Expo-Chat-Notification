@@ -157,6 +157,18 @@ const StackLayout = () => {
               },
             }}
           />
+          <Stack.Screen
+            name="app_options"
+            options={{
+              headerTitle: "App Options",
+            }}
+          />
+          <Stack.Screen
+            name="bottomsheet"
+            options={{
+              headerTitle: "Bottom Sheet",
+            }}
+          />
         </Stack>
       </FileViewProvider>
     </ChatRoomProvider>

@@ -2,35 +2,55 @@ import { View, Text, useWindowDimensions } from "react-native";
 import React, { useEffect, useState } from "react";
 import { Card, CardHeader, CardTitle, CardContent } from "../ui/Card";
 import BadgeWithIcon from "../ui/BadgeWithIcon";
-import { dummyUnreadMessages } from "@/constants/dummyUnreadMessages";
+import { dummyUserChatRooms } from "@/constants/dummyUnreadMessages";
 import { Ionicons } from "@expo/vector-icons";
 import Avatar from "../chatRoom/Avatar";
 import { ko } from "date-fns/locale";
 import { formatDistanceToNow } from "date-fns";
+import EachChatRoom from "../chatList/EachChatRoom";
+import { Database } from "@/db/supabase/supabase";
+import { cn } from "@/lib/utils";
 
 const UNREAD_MESSAGES_IN_SECTION_MAX_COUNT = 3;
 
-const InitScreenUnreadSection = ({ isDark }: { isDark: boolean }) => {
-  const [unreadMessages, setUnreadMessages] = useState<any[]>([]);
+type GetUserChatRoomsRowType =
+  Database["public"]["Functions"]["get_user_chat_rooms"]["Returns"][0];
+
+type InitScreenUnreadSectionProps = {
+  isDark: boolean;
+  className?: string;
+};
+
+const InitScreenUnreadSection = ({
+  isDark,
+  className,
+}: InitScreenUnreadSectionProps) => {
+  const [unreadMessages, setUnreadMessages] = useState<
+    GetUserChatRoomsRowType[]
+  >([]);
+  const [moreCnt, setMoreCnt] = useState(0);
 
   useEffect(() => {
     const fetchUnreadMessages = async () => {
-      const unMessages = dummyUnreadMessages;
+      const unMessages = dummyUserChatRooms;
       setUnreadMessages(unMessages);
     };
     fetchUnreadMessages();
   }, []);
 
-  const moreCnt =
-    unreadMessages.length > UNREAD_MESSAGES_IN_SECTION_MAX_COUNT
-      ? unreadMessages.length - UNREAD_MESSAGES_IN_SECTION_MAX_COUNT
-      : 0;
+  useEffect(() => {
+    const moreCntNum =
+      unreadMessages.length > UNREAD_MESSAGES_IN_SECTION_MAX_COUNT
+        ? unreadMessages.length - UNREAD_MESSAGES_IN_SECTION_MAX_COUNT
+        : 0;
+    setMoreCnt(moreCntNum);
+  }, [unreadMessages]);
 
   return (
     <View
-      className="flex flex-row items-center justify-start gap-4 w-full
+      className={cn(`flex flex-row items-center justify-start gap-4 w-full
     p-sm pt-lg border-0 border-red-500
-    "
+    ${className}`)}
     >
       {/* Unread Messages Section */}
       <Card className="bg-card dark:bg-card-dark border-border w-full p-0">
@@ -54,57 +74,41 @@ const InitScreenUnreadSection = ({ isDark }: { isDark: boolean }) => {
             >
               Unread Messages
             </Text>
-            <View className="flex items-center justify-center">
-              <BadgeWithIcon
-                className="bg-yellow-600 dark:bg-yellow-600 border-0 text-accent-foreground ml-auto"
-                dot={false}
-                dotSize={10}
-                label={unreadMessages.length}
-                textClassName="text-md font-medium text-foreground dark:text-foreground-dark"
-              >
-                {unreadMessages.length}
-              </BadgeWithIcon>
-            </View>
+            {unreadMessages.length > 0 ? (
+              <View className="flex items-center justify-center">
+                <BadgeWithIcon
+                  className="bg-yellow-600 dark:bg-yellow-600 border-0 text-accent-foreground ml-auto"
+                  dot={false}
+                  dotSize={10}
+                  label={unreadMessages.length}
+                  textClassName="text-md font-medium text-foreground dark:text-foreground-dark"
+                >
+                  {unreadMessages.length}
+                </BadgeWithIcon>
+              </View>
+            ) : null}
           </CardTitle>
         </CardHeader>
-        <CardContent className="space-y-0 p-sm pb-xs">
-          {unreadMessages
-            .slice(0, UNREAD_MESSAGES_IN_SECTION_MAX_COUNT)
-            .map((msg) => (
-              <View
-                key={msg.message_id}
-                className="flex flex-row items-center space-x-3 p-sm py-sm gap-md rounded-lg 
-              w-full "
-              >
-                <Avatar name={msg.sender_name} avatar={msg.avatar} />
-                <View
-                  className="flex-1 flex flex-row w-full "
-                  id={`msg-content-${msg.message_id}`}
-                >
-                  <View className="flex flex-1 items-start justify-between w-full ">
-                    <Text className="text-md font-medium text-foreground dark:text-foreground-dark ">
-                      {msg.sender_name}
-                    </Text>
-                    <Text className="text-sm text-foreground-tertiary dark:text-foreground-tertiaryDark truncate ">
-                      {msg.content}
-                    </Text>
-                  </View>
-                  <View className="flex flex-row items-center gap-x-sm">
-                    <Ionicons
-                      name="time-outline"
-                      size={24}
-                      color={isDark ? "silver" : "gray"}
-                    />
-                    <Text className="text-sm text-foreground-secondary dark:text-foreground-secondaryDark ">
-                      {formatDistanceToNow(new Date(msg.sent_at), {
-                        addSuffix: true,
-                        locale: ko,
-                      })}
-                    </Text>
-                  </View>
-                </View>
-              </View>
-            ))}
+        <CardContent className="space-y-0 p-sm pb-xs gap-xs">
+          {unreadMessages.length > 0 ? (
+            unreadMessages
+              .slice(0, UNREAD_MESSAGES_IN_SECTION_MAX_COUNT)
+              .map((msg, index) => (
+                <EachChatRoom
+                  key={msg.room_id}
+                  msg={msg}
+                  isDark={isDark}
+                  index={index}
+                  animationProp={false}
+                />
+              ))
+          ) : (
+            <View className="flex items-center justify-center">
+              <Text className="text-center text-foreground-secondary dark:text-foreground-secondaryDark ">
+                No unread messages...
+              </Text>
+            </View>
+          )}
           {moreCnt > 0 && (
             <Text className="text-center text-foreground-secondary dark:text-foreground-secondaryDark ">
               +{moreCnt} more unread messages...

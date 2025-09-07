@@ -33,6 +33,7 @@ import { APP_NAME, HEADER_ICON_SIZE } from "@/constants/constants";
 import { useNavigationState } from "@react-navigation/native";
 import { Text, TouchableOpacity, View } from "react-native";
 import { FilesCategory, useTabsLayoutStore } from "@/zustand/tabsLayoutStore";
+import ChatListSubmenuTrigger from "@/components/chatList/ChatListSubmenuTrigger";
 // import { useFileView } from "@/contexts/FileViewProvider";
 
 export default function TabLayout() {
@@ -251,18 +252,7 @@ const ChatRoomsHeaderRight = ({
           color={foregroundTheme}
         />
       </TouchableOpacity>
-      <TouchableOpacity
-        onPress={() => {
-          console.log("====StackHeaderRight onPress=====");
-        }}
-        className="bg-background dark:bg-background-dark rounded-full p-sm"
-      >
-        <Ionicons
-          name="add-outline"
-          size={HEADER_ICON_SIZE}
-          color={foregroundTheme}
-        />
-      </TouchableOpacity>
+      <ChatListSubmenuTrigger />
     </View>
   );
 };

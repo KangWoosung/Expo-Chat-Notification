@@ -45,16 +45,17 @@ import { Card, CardContent, CardHeader, CardTitle } from "../ui/Card";
 import { Ionicons } from "@expo/vector-icons";
 import BadgeWithIcon from "../ui/BadgeWithIcon";
 import { useColorScheme } from "nativewind";
+import { cn } from "@/lib/utils";
 
 const DEFAULT_GIFTED_STORAGE_USAGE_CHART_DATA = [
   {
     value: 10,
-    color: "rgb(255, 35, 35)",
+    color: "rgb(254, 203, 0)",
     text: "Used",
   },
   {
     value: 90,
-    color: "rgb(148, 78, 21)",
+    color: "rgb(113, 106, 100)",
     text: "Available",
   },
 ];
@@ -62,17 +63,21 @@ const DEFAULT_GIFTED_STORAGE_USAGE_CHART_DATA = [
 const DEFAULT_GIFTED_FILE_USAGE_CHART_DATA = [
   {
     value: 10,
-    color: "rgb(255, 35, 35)",
+    color: "rgb(254, 203, 0)",
     text: "Used",
   },
   {
     value: 90,
-    color: "rgb(148, 78, 21)",
+    color: "rgb(113, 106, 100)",
     text: "Available",
   },
 ];
 
-const InitScreenChartSection = () => {
+type InitScreenChartSectionProps = {
+  className?: string;
+};
+
+const InitScreenChartSection = ({ className }: InitScreenChartSectionProps) => {
   const [storageUsageChartData, setStorageUsageChartData] = useState(
     DEFAULT_GIFTED_STORAGE_USAGE_CHART_DATA
   );
@@ -176,7 +181,13 @@ const InitScreenChartSection = () => {
   }, [storageUsage]);
 
   return (
-    <View className="flex flex-row flex-wrap w-full gap-md p-sm pt-xl border-0 border-red-500">
+    <View
+      className={cn(
+        `flex flex-row flex-wrap w-full gap-md p-sm pt-xl 
+      border-0 border-red-500`,
+        className
+      )}
+    >
       <Card
         className="flex items-center justify-center gap-4 w-[48%]
       bg-card dark:bg-card-dark border-border col-span-1
@@ -218,8 +229,9 @@ const InitScreenChartSection = () => {
             <GiftedPieChart
               data={storageUsageChartData}
               config={{
-                gradientCenterColor: "rgb(208, 173, 147)",
+                gradientCenterColor: "rgb(167, 142, 124)",
               }}
+              className="-mt-sm border-0 border-green-500"
             />
           )}
           <View
@@ -274,8 +286,9 @@ const InitScreenChartSection = () => {
             <GiftedPieChart
               data={fileUsageChartData}
               config={{
-                gradientCenterColor: "rgb(208, 173, 147)",
+                gradientCenterColor: "rgb(167, 142, 124)",
               }}
+              className="-mt-sm border-0 border-green-500"
             />
           )}
           <View

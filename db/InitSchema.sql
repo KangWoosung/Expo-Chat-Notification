@@ -464,3 +464,59 @@ INNER JOIN uploaded_files uf ON m.file_id = uf.file_id
 WHERE m.room_id = ?
 ORDER BY m.sent_at ASC;
 */
+-- 2025-08-31 04:08:16
+-- RPC Function
+create or replace function public.get_user_chat_rooms(p_user_id text)
+returns table (
+  room_id uuid,
+  room_name text,
+  other_user_id text,
+  other_user_name text,
+  other_user_avatar text,
+  last_message_content text,
+  last_message_type text,
+  last_message_sent_at timestamptz
+)
+language sql
+as $$
+  with member_rooms as (
+    select crm.room_id
+    from public.chat_room_members crm
+    where crm.user_id = p_user_id
+  ),
+  last_messages as (
+    select distinct on (m.room_id)
+      m.room_id,
+      m.content,
+      m.message_type,
+      m.sent_at
+    from public.messages m
+    join member_rooms mr on mr.room_id = m.room_id
+    order by m.room_id, m.sent_at desc
+  ),
+  other_users as (
+    select
+      crm.room_id,
+      u.user_id,
+      u.name,
+      u.avatar
+    from public.chat_room_members crm
+    join public.users u on u.user_id = crm.user_id
+    where crm.room_id in (select room_id from member_rooms)
+      and crm.user_id <> p_user_id
+  )
+  select
+    cr.room_id,
+    cr.name as room_name,
+    ou.user_id as other_user_id,
+    ou.name as other_user_name,
+    ou.avatar as other_user_avatar,
+    lm.content as last_message_content,
+    lm.message_type as last_message_type,
+    lm.sent_at as last_message_sent_at
+  from public.chat_rooms cr
+  join member_rooms mr on cr.room_id = mr.room_id
+  left join other_users ou on ou.room_id = cr.room_id
+  left join last_messages lm on lm.room_id = cr.room_id
+  order by lm.sent_at desc nulls last;
+$$;

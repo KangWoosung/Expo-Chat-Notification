@@ -56,17 +56,6 @@ const FilesIndex = () => {
     refetch: refetchFiles,
   } = currentQuery;
 
-  // 파일 데이터 변화 로그
-  // useEffect(() => {
-  //   console.log("=== Files data changed:", {
-  //     category: filesCategory,
-  //     filesCount: files.length,
-  //     files: files,
-  //     isLoading: isLoadingFiles,
-  //     hasError: !!filesError,
-  //   });
-  // }, [files, filesCategory, isLoadingFiles, filesError]);
-
   const { error: storageError } = useStorageUsage();
 
   useEffect(() => {

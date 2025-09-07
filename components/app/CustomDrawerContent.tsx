@@ -157,7 +157,8 @@ const CustomDrawerContent = (props: DrawerContentComponentProps) => {
             />
           )}
           // @ts-ignore
-          onPress={() => router.push("/settings")}
+          //  router.push(`/(stack)/app_options/index`);
+          onPress={() => router.push(`/(stack)/app_options`)}
           labelStyle={{
             fontWeight: "bold",
             color: foregroundTheme,

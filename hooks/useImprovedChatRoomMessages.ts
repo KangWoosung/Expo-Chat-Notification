@@ -1,16 +1,17 @@
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useSupabase } from "@/contexts/SupabaseProvider";
 import { Tables } from "@/db/supabase/supabase";
+import { queryKeys } from "@/constants/queryKeys";
 
 // 개선된 메시지 타입 (file_id 직접 포함)
 export type ImprovedMessage = Tables<"messages"> & {
   uploaded_files?: Tables<"uploaded_files">; // 필요시 JOIN
 };
 
-// Query keys
+// Query keys (기존 호환성 유지)
 export const improvedMessagesKeys = {
   all: ["improvedMessages"] as const,
-  room: (roomId: string) => [...improvedMessagesKeys.all, roomId] as const,
+  room: (roomId: string) => queryKeys.messages.improved(roomId, true),
 };
 
 // 🚀 개선된 메시지 훅 (훨씬 간단한 쿼리)

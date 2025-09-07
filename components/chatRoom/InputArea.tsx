@@ -1,4 +1,10 @@
-import { View, TouchableOpacity, TextInput } from "react-native";
+import {
+  View,
+  TouchableOpacity,
+  TextInput,
+  Text,
+  ActivityIndicator,
+} from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import AttachmentUploader from "./AttachmentUploader";
 import { HEADER_ICON_SIZE } from "@/constants/constants";
@@ -11,6 +17,8 @@ type InputAreaProps = {
   handleSendMessage: () => void;
   inputRef: React.RefObject<TextInput | null>;
   chatRoomId: string;
+  isLoading?: boolean;
+  error?: string;
 };
 
 export default function InputArea({
@@ -19,6 +27,8 @@ export default function InputArea({
   handleSendMessage,
   inputRef,
   chatRoomId,
+  isLoading = false,
+  error,
 }: InputAreaProps) {
   const { colorScheme } = useColorScheme();
   const isDark = colorScheme === "dark";
@@ -56,16 +66,25 @@ export default function InputArea({
             p-2 rounded-full bg-background dark:bg-background-dark 
             border border-border dark:border-border-dark
             "
-            disabled={!message.trim()}
+            disabled={!message.trim() || isLoading}
           >
-            <Ionicons
-              name="send-outline"
-              size={HEADER_ICON_SIZE}
-              color={foregroundTheme}
-            />
+            {isLoading ? (
+              <ActivityIndicator size="small" color={foregroundTheme} />
+            ) : (
+              <Ionicons
+                name="send-outline"
+                size={HEADER_ICON_SIZE}
+                color={foregroundTheme}
+              />
+            )}
           </TouchableOpacity>
         </View>
       </View>
+      {error && (
+        <Text className="mt-2 text-sm text-red-500 dark:text-red-400">
+          {error}
+        </Text>
+      )}
     </View>
   );
 }

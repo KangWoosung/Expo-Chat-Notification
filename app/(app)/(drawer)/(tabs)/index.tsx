@@ -1,41 +1,30 @@
+/*
+2025-09-01 14:53:41
+Never use useFocusEffect hook in Expo Navigation!!!
+Use useIsFocused hook instead!!!  
+
+
+
+*/
+
 import { View, Text, ScrollView } from "react-native";
-import React, { useEffect, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import { usePushToken } from "@/contexts/PushTokenProvider";
-import { useUser } from "@clerk/clerk-expo";
-import { Image } from "expo-image";
-import { DEFAULT_AVATAR } from "@/constants/constants";
-import { useStorageUsage } from "@/hooks/useStorageUsage";
-import { FILE_UPLOAD_LIMIT } from "@/constants/usageLimits";
-import ChartKitPieChart, {
-  defaultChartConfig,
-} from "@/components/charts/ChartKitPieChart";
-import BadgeWithIcon from "@/components/ui/BadgeWithIcon";
-import { hexToRgba } from "@/utils/hexToRgba";
-import { capitalizeFirstLetter } from "@/utils/stringFunctions";
+import { useClerk, useUser } from "@clerk/clerk-expo";
+import { useIsFocused } from "@react-navigation/native";
+
 import { useColorScheme } from "nativewind";
 import InitScreenUserCard from "@/components/app/InitScreenUserCard";
 import InitScreenUnreadSection from "@/components/app/InitScreenUnreadSection";
 import InitScreenChartSection from "@/components/app/InitScreenChartSection";
-
-/*
-data example:
-const data = [
-  {
-    name: "Seoul",
-    population: 21500000,
-    color: "rgba(131, 167, 234, 1)",
-    legendFontColor: "#7F7F7F",
-    legendFontSize: 15
-  },
-  {
-    name: "Toronto",
-    population: 2800000,
-    color: "#F00",
-    legendFontColor: "#7F7F7F",
-    legendFontSize: 15
-  },
-];
-*/
+import Animated, {
+  useAnimatedStyle,
+  useSharedValue,
+  withDelay,
+  withTiming,
+} from "react-native-reanimated";
+import { useAnimationStore } from "@/zustand/useAnimationStore";
+import { ANIMATION_DELAY } from "@/constants/constants";
 
 const Index = () => {
   const { expoPushToken, notification, error, isLoading, isCachedToken } =
@@ -43,65 +32,88 @@ const Index = () => {
   const { user: currentUser } = useUser();
   const { colorScheme } = useColorScheme();
   const isDark = colorScheme === "dark";
+  const { signOut, isSignedIn } = useClerk();
 
-  console.log("====Index=====");
+  const isFocused = useIsFocused();
+  const animationsEnabled = useAnimationStore((s) => s.animationsEnabled);
+
+  const unreadSectionOpacity = useSharedValue(0);
+  const unreadSectionTranslateY = useSharedValue(20);
+  const chartSectionOpacity = useSharedValue(0);
+  const chartSectionTranslateY = useSharedValue(20);
+
+  useEffect(() => {
+    // signOut();
+    console.log("isFocused", isFocused);
+    // Animation Control by AnimationsEnabled state
+    if (animationsEnabled) {
+      unreadSectionOpacity.value = withDelay(
+        ANIMATION_DELAY * 1,
+        withTiming(isFocused ? 1 : 0)
+      );
+      unreadSectionTranslateY.value = withDelay(
+        ANIMATION_DELAY * 1,
+        withTiming(isFocused ? 0 : 20)
+      );
+      chartSectionOpacity.value = withDelay(
+        ANIMATION_DELAY * 2,
+        withTiming(isFocused ? 1 : 0)
+      );
+      chartSectionTranslateY.value = withDelay(
+        ANIMATION_DELAY * 2,
+        withTiming(isFocused ? 0 : 20)
+      );
+    } else {
+      unreadSectionOpacity.value = 1;
+      unreadSectionTranslateY.value = 0;
+      chartSectionOpacity.value = 1;
+      chartSectionTranslateY.value = 0;
+    }
+  }, [isFocused, animationsEnabled]);
+
+  const unreadSectionAnimatedStyle = useAnimatedStyle(() => ({
+    opacity: unreadSectionOpacity.value,
+    transform: [{ translateY: unreadSectionTranslateY.value }],
+  }));
+
+  const chartSectionAnimatedStyle = useAnimatedStyle(() => ({
+    opacity: chartSectionOpacity.value,
+    transform: [{ translateY: chartSectionTranslateY.value }],
+  }));
+
+  if (!isSignedIn) {
+    return (
+      <View className="flex-1 items-center justify-center">
+        <Text className="text-foreground dark:text-foreground-dark">
+          User information is not found. Please login to continue
+        </Text>
+      </View>
+    );
+  }
 
   return (
     <ScrollView
-      className="flex-1 
+      className="flex-1 relative
     bg-background dark:bg-background-dark"
       contentContainerStyle={{ justifyContent: "center", alignItems: "center" }}
     >
-      {/* <View
-        className="flex flex-row items-center justify-start gap-4 w-full
-        p-lg pt-2xl
-      "
-      >
-        <View className="flex items-center justify-center gap-4">
-          <Image
-            source={currentUser?.imageUrl || DEFAULT_AVATAR}
-            style={{
-              width: 100,
-              height: 100,
-              borderRadius: 50,
-            }}
-          />
-        </View>
-        <View className="flex items-center justify-center gap-4">
-          <Text className="text-foreground dark:text-foreground-dark text-xl font-bold">
-            {currentUser?.username || "No Name"}
-          </Text>
-          <View className="flex items-center justify-center gap-4">
-            <BadgeWithIcon
-              iconName="checkmark"
-              className="bg-accent-600/20 border-accent-800 
-               dark:bg-accent-200/20 dark:border-accent-300 "
-              textClassName=" text-accent-800 dark:text-accent-200"
-              style={{ backgroundColor: hexToRgba("#c88a04", 0.5) }}
-              iconColor={isDark ? "gold" : "crimson"}
-              iconSize={16}
-              iconPosition="left"
-              dot={false}
-              dotSize={10}
-              maxCount={99}
-              pressable={false}
-              onPress={() => {}}
-              accessibilityLabel="online"
-              label="online"
-            />
-          </View>
-        </View>
-      </View> */}
-
       <InitScreenUserCard
         currentUser={currentUser}
         isDark={isDark}
         expoPushToken={expoPushToken || ""}
+        className="border-0 border-green-500 relative"
       />
 
-      <InitScreenUnreadSection isDark={isDark} />
+      <Animated.View style={unreadSectionAnimatedStyle} className="w-full">
+        <InitScreenUnreadSection
+          isDark={isDark}
+          className=" border-0 border-green-500 relative"
+        />
+      </Animated.View>
 
-      <InitScreenChartSection />
+      <Animated.View style={chartSectionAnimatedStyle} className="w-full">
+        <InitScreenChartSection className="border-0 border-green-500 relative" />
+      </Animated.View>
 
       <View className="flex items-center justify-center gap-4 my-lg">
         {isLoading ? (

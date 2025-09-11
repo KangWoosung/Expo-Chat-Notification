@@ -1,10 +1,9 @@
 import { useFonts } from "expo-font";
-import { ErrorBoundary, Stack } from "expo-router";
+import { Stack } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import { resourceCache } from "@clerk/clerk-expo/resource-cache";
 import { tokenCache } from "@clerk/clerk-expo/token-cache";
 
-import { useColorScheme } from "@/hooks/useColorScheme";
 import { SafeAreaProvider, SafeAreaView } from "react-native-safe-area-context";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import "@/styles/global.css";
@@ -23,8 +22,6 @@ import {
   BottomSheetModal,
   BottomSheetModalProvider,
 } from "@gorhom/bottom-sheet";
-import CreateGroupChatRoom from "./(stack)/bottomsheet/CreateGroupChatRoom";
-import { View } from "react-native";
 import { GlobalBottomSheet } from "@/components/modals/GlobalBottomSheet";
 
 // QueryClient 인스턴스 생성
@@ -48,7 +45,6 @@ export default function RootLayout() {
   const [onBoardingFlag, setOnBoardingFlag] = useState(false);
   const { showOnBoarding, setShowOnBoarding } = useOnBoardingStore();
 
-  const colorScheme = useColorScheme();
   const [loaded] = useFonts({
     SpaceMono: require("../assets/fonts/SpaceMono-Regular.ttf"),
   });

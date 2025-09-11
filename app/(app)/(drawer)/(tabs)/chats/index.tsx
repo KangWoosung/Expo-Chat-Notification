@@ -6,6 +6,7 @@ import { useUser } from "@clerk/clerk-expo";
 import AllUserChats from "@/components/chatList/AllUserChats";
 import { useColorScheme } from "nativewind";
 import ExistingChatRooms from "@/components/chatList/ExistingChatRooms";
+import PresentationIndex from "@/app/(stack)/presentation";
 
 const ChatsIndex = () => {
   const { user: currentUser } = useUser();
@@ -49,6 +50,7 @@ const ChatsIndex = () => {
             setError={setError}
             isDark={isDark}
           />
+          <PresentationIndex />
         </>
       )}
     </View>

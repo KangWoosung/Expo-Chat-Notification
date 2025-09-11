@@ -5,13 +5,11 @@ import {
   Pressable,
   ActivityIndicator,
 } from "react-native";
-import React, { useEffect, useState } from "react";
-import { useUser } from "@clerk/clerk-expo";
+import React, { useState } from "react";
 import { Tables } from "@/db/supabase/supabase";
 import { useSupabase } from "@/contexts/SupabaseProvider";
 import { router } from "expo-router";
 import { DEFAULT_AVATAR, DEFAULT_PAGE_LIMIT } from "@/constants/constants";
-import { Ionicons } from "@expo/vector-icons";
 import { Image } from "expo-image";
 
 import type { UserResource } from "@clerk/types";
@@ -117,13 +115,13 @@ function UserItem({ user }: { user: Tables<"users"> }) {
     </Pressable>
   );
 }
-function Footer() {
-  return (
-    <View className="flex-row items-center justify-center w-full h-10">
-      <ActivityIndicator
-        size="large"
-        color={tailwindColors.foreground.primary}
-      />
-    </View>
-  );
-}
+// function Footer() {
+//   return (
+//     <View className="flex-row items-center justify-center w-full h-10">
+//       <ActivityIndicator
+//         size="large"
+//         color={tailwindColors.foreground.primary}
+//       />
+//     </View>
+//   );
+// }

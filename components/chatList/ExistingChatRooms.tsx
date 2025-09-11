@@ -1,20 +1,11 @@
 import { View, Text, FlatList, ActivityIndicator } from "react-native";
-import React, { useEffect } from "react";
+import React from "react";
 import { useFetchMyChatRooms } from "@/hooks/useFetchMyChatRooms";
 import { useUser } from "@clerk/clerk-expo";
 import { useSupabase } from "@/contexts/SupabaseProvider";
 import tailwindColors from "@/utils/tailwindColors";
 import EachChatRoom from "./EachChatRoom";
 import { useColorScheme } from "nativewind";
-import { useIsFocused } from "@react-navigation/native";
-import { useAnimationStore } from "@/zustand/useAnimationStore";
-import {
-  useAnimatedStyle,
-  useSharedValue,
-  withDelay,
-  withTiming,
-} from "react-native-reanimated";
-import { ANIMATION_DELAY } from "@/constants/constants";
 
 const ExistingChatRooms = () => {
   const { supabase } = useSupabase();
@@ -22,11 +13,7 @@ const ExistingChatRooms = () => {
   const { colorScheme } = useColorScheme();
   const isDark = colorScheme === "dark";
 
-  const {
-    data: chatRooms,
-    isLoading,
-    error,
-  } = useFetchMyChatRooms({
+  const { data: chatRooms, isLoading } = useFetchMyChatRooms({
     supabase,
     currentUserId: currentUser?.id || null,
   });

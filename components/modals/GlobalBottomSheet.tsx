@@ -14,11 +14,21 @@ export function GlobalBottomSheet() {
   const isDark = colorScheme === "dark";
 
   const handleStyle = {
-    backgroundColor: isDark ? "#333" : "#ccc",
+    backgroundColor: isDark ? "#333" : "#eee",
+    borderTopLeftRadius: 16,
+    borderTopRightRadius: 16,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: -4 }, // 위쪽으로 그림자
+    // shadowOpacity: 0.1,
+    // shadowRadius: 6,
+    // elevation: 6, // Android
   };
 
   const handleIndicatorStyle = {
     backgroundColor: isDark ? "#888" : "#aaa",
+    width: 40,
+    height: 5,
+    borderRadius: 3,
   };
 
   // backdrop renders

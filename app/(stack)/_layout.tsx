@@ -1,11 +1,9 @@
 import { View, Text, TouchableOpacity } from "react-native";
-import React, { useEffect } from "react";
-import { Stack, useLocalSearchParams } from "expo-router";
+import React from "react";
+import { Stack } from "expo-router";
 import tailwindColors from "@/utils/tailwindColors";
-import { useNavigationState } from "@react-navigation/native";
 import { useColorScheme } from "nativewind";
 import { ChatRoomProvider, useChatRoom } from "@/contexts/ChatRoomProvider";
-import ChatRoomSubmenuTrigger from "@/components/chatRoom/ChatRoomSubmenuTrigger";
 import ChatRoomNotificationTrigger from "@/components/chatRoom/ChatRoomNotificationTrigger";
 import FileViewProvider, { useFileView } from "@/contexts/FileViewProvider";
 import { Ionicons } from "@expo/vector-icons";
@@ -15,6 +13,7 @@ import { useUser } from "@clerk/clerk-expo";
 import { HEADER_ICON_SIZE } from "@/constants/constants";
 import { FilesCategory, useTabsLayoutStore } from "@/zustand/tabsLayoutStore";
 import { handleFileDownload } from "@/utils/handleDownload";
+import ChatRoomSubmenuTrigger from "@/components/chatRoom/ChatRoomSubmenuTrigger";
 
 // useChatRoom uses already cached chatRoomName from Context
 // So, it's fast enough.
@@ -46,7 +45,7 @@ const FileViewerHeaderRight = ({
   backgroundTheme: string;
 }) => {
   const { supabase } = useSupabase();
-  const { fileId, setFileId, fileUrl, fileName } = useFileView();
+  const { fileId, fileUrl } = useFileView();
   const { user } = useUser();
   const { filesCategory } = useTabsLayoutStore();
 
@@ -167,6 +166,12 @@ const StackLayout = () => {
             name="bottomsheet"
             options={{
               headerTitle: "Bottom Sheet",
+            }}
+          />
+          <Stack.Screen
+            name="presentation"
+            options={{
+              headerTitle: "Presentation",
             }}
           />
         </Stack>

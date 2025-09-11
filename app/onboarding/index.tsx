@@ -21,6 +21,7 @@ import { ONBOARDING_FLAG } from "@/constants/constants";
 import OnboardingItem from "@/components/onboarding/OnboardingItem";
 import DotPagination from "@/components/onboarding/DotPagination";
 import { useOnBoardingStore } from "@/zustand/useOnBoardingStore";
+import OnboardingStage from "@/components/onboarding/OnboardingStage";
 const { width: WIDTH, height: HEIGHT } = Dimensions.get("window");
 
 const OnBoardingIndex = () => {
@@ -68,8 +69,9 @@ const OnBoardingIndex = () => {
   return (
     <View className="flex-1 items-center justify-center bg-gray-400">
       <StatusBar hidden />
-      <Backdrop scrollX={scrollX} />
-      <Blob scrollX={scrollX} />
+      {/* <Backdrop scrollX={scrollX} /> */}
+      <OnboardingStage scrollX={scrollX} />
+      {/* <Blob scrollX={scrollX} /> */}
       <Animated.FlatList
         ref={flatListRef}
         data={onboardingData}

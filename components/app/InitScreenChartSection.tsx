@@ -36,9 +36,6 @@ import {
   FILE_UPLOAD_COUNT_LIMIT,
   FILE_UPLOAD_LIMIT,
 } from "@/constants/usageLimits";
-import ChartKitPieChart, {
-  defaultChartConfig,
-} from "@/components/charts/ChartKitPieChart";
 import { useStorageUsage } from "@/hooks/useStorageUsage";
 import GiftedPieChart from "../charts/GiftedPieChart";
 import { Card, CardContent, CardHeader, CardTitle } from "../ui/Card";

@@ -9,6 +9,9 @@ export const queryKeys = {
     all: ["chatRooms"] as const,
     mine: (userId: string) =>
       [...queryKeys.chatRooms.all, "mine", userId] as const,
+    // 그룹 채팅방 관련 쿼리 추가 (필요시)
+    group: (roomId: string) =>
+      [...queryKeys.chatRooms.all, "group", roomId] as const,
   },
 
   // 메시지 관련

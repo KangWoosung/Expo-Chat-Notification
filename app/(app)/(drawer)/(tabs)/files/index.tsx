@@ -123,6 +123,15 @@ const FilesIndex = () => {
             </View>
           )}
 
+          {/* 파일 목록 비어있을 때 */}
+          {!isLoadingFiles && !filesError && files.length === 0 && (
+            <View className="flex-1 items-center justify-center">
+              <Text className="text-foreground dark:text-foreground-dark">
+                파일이 없습니다.
+              </Text>
+            </View>
+          )}
+
           {/* 파일 목록 */}
           {!isLoadingFiles && !filesError && (
             <FlatList

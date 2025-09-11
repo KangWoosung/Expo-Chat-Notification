@@ -1,8 +1,7 @@
 import { View, Text, StyleProp, ViewStyle } from "react-native";
-import React, { useEffect } from "react";
+import React from "react";
 import { DEFAULT_AVATAR } from "@/constants/constants";
 import { Image } from "expo-image";
-import { Tables } from "@/db/supabase/supabase";
 import BadgeWithIcon from "../ui/BadgeWithIcon";
 import { hexToRgba } from "@/utils/hexToRgba";
 import useIsOnline from "@/hooks/useIsOnline";

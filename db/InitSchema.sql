@@ -520,3 +520,64 @@ as $$
   left join last_messages lm on lm.room_id = cr.room_id
   order by lm.sent_at desc nulls last;
 $$;
+
+
+--2025-09-07 17:13:47
+-- RPC Function
+-- DB에 트랜잭션 처리를 위한 함수 생성
+CREATE OR REPLACE FUNCTION public.create_group_chat_room(
+  p_name text,
+  p_created_by text,
+  p_member_ids text[]
+)
+RETURNS uuid
+LANGUAGE plpgsql
+SECURITY DEFINER
+AS $$
+DECLARE
+  new_room_id uuid;
+  member_id text;
+BEGIN
+  -- 입력 유효성 검사
+  IF p_name IS NULL OR trim(p_name) = '' THEN
+    RAISE EXCEPTION 'Group chat name cannot be empty';
+  END IF;
+  
+  IF array_length(p_member_ids, 1) IS NULL OR array_length(p_member_ids, 1) = 0 THEN
+    RAISE EXCEPTION 'At least one member must be invited';
+  END IF;
+
+  -- 선택된 사용자들이 실제로 존재하는지 확인
+  IF EXISTS (
+    SELECT 1 FROM unnest(p_member_ids) AS member_id
+    WHERE member_id NOT IN (SELECT user_id FROM public.users)
+  ) THEN
+    RAISE EXCEPTION 'One or more selected users do not exist';
+  END IF;
+
+  -- 채팅방 생성
+  INSERT INTO public.chat_rooms (name, created_by, type)
+  VALUES (trim(p_name), p_created_by, 'group')
+  RETURNING room_id INTO new_room_id;
+  
+  -- 생성자를 owner로 추가
+  INSERT INTO public.chat_room_members (room_id, user_id, invited_by, role)
+  VALUES (new_room_id, p_created_by, p_created_by, 'owner');
+  
+  -- 선택된 멤버들을 member로 추가 (중복 제거)
+  FOR member_id IN SELECT DISTINCT unnest(p_member_ids) LOOP
+    -- 생성자는 이미 추가했으므로 제외
+    IF member_id != p_created_by THEN
+      INSERT INTO public.chat_room_members (room_id, user_id, invited_by, role)
+      VALUES (new_room_id, member_id, p_created_by, 'member')
+      ON CONFLICT (room_id, user_id) DO NOTHING;
+    END IF;
+  END LOOP;
+  
+  RETURN new_room_id;
+EXCEPTION
+  WHEN OTHERS THEN
+    RAISE EXCEPTION 'Failed to create group chat room: %', SQLERRM;
+END;
+$$;
+

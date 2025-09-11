@@ -4,7 +4,6 @@ import { HEADER_ICON_SIZE } from "@/constants/constants";
 import { Ionicons } from "@expo/vector-icons";
 import tailwindColors from "@/utils/tailwindColors";
 import { useColorScheme } from "nativewind";
-import { router } from "expo-router";
 import { globalSheetRef } from "@/app/_layout";
 import { useBottomSheetStore } from "@/zustand/useBottomSheetStore";
 import CreateGroupChatRoom from "@/app/(stack)/bottomsheet/CreateGroupChatRoom";

@@ -105,7 +105,7 @@ npx expo install react-native-svg
 # npx expo install victory-native
 
 ## Skia
-#npx expo install @shopify/react-native-skia
+npx expo install @shopify/react-native-skia
 
 ## Gifted-Charts
 npm install react-native-gifted-charts react-native-linear-gradient react-native-svg
@@ -115,3 +115,10 @@ npx expo install @gorhom/bottom-sheet@^5
 
 ## Checkbox
 npx expo install @react-native-community/checkbox
+
+## Tech Stack Icons
+# npx expo install tech-stack-icons@latest
+
+## Masked View
+# npx expo install react-native-masked-view
+

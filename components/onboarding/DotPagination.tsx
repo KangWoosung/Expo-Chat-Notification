@@ -17,6 +17,7 @@ import Animated, {
   useAnimatedReaction,
   runOnJS,
 } from "react-native-reanimated";
+import { useOnboardingStage } from "@/zustand/onboarding/useOnboardingStage";
 
 const AnimatedTouchableOpacity =
   Animated.createAnimatedComponent(TouchableOpacity);
@@ -25,34 +26,24 @@ const { width: WIDTH, height: HEIGHT } = Dimensions.get("window");
 
 type DotPaginationProps = {
   screenData: OnboardingItemType[];
-  index: number;
-  scrollX: SharedValue<number>;
-  handleNext: () => void;
 };
 
-const DotPagination = ({
-  screenData,
-  index,
-  scrollX,
-  handleNext,
-}: DotPaginationProps) => {
+const DotPagination = ({ screenData }: DotPaginationProps) => {
+  const { scrollX, flatListIndex, handleNext } = useOnboardingStage();
   return (
-    <View className="absolute bottom-28 flex flex-row items-center justify-between gap-20">
+    <View
+      className="absolute bottom-28 flex flex-row items-center justify-between gap-20"
+      style={{
+        zIndex: 990,
+      }}
+    >
       <View className="flex flex-row items-center justify-center gap-4">
         {screenData.map((_, i) => {
-          return (
-            <DotIndicator
-              key={`dot-indicator-${i}`}
-              index={i}
-              scrollX={scrollX}
-            />
-          );
+          return <DotIndicator key={`dot-indicator-${i}`} index={i} />;
         })}
       </View>
       <NextButton
-        scrollX={scrollX}
         totalSize={screenData.length}
-        onPress={handleNext}
         style={{
           right: 0,
           paddingHorizontal: 20,
@@ -66,13 +57,12 @@ const DotPagination = ({
 };
 
 type NextButtonProps = {
-  scrollX: SharedValue<number>;
   totalSize: number;
-  onPress: () => void;
   style?: ViewStyle;
 };
 
-function NextButton({ scrollX, totalSize, onPress, style }: NextButtonProps) {
+function NextButton({ totalSize, style }: NextButtonProps) {
+  const { scrollX, handleNext } = useOnboardingStage();
   const isPressed = useSharedValue(false);
   const rippleScale = useSharedValue(1);
   const [isLastPage, setIsLastPage] = useState(false);
@@ -86,7 +76,7 @@ function NextButton({ scrollX, totalSize, onPress, style }: NextButtonProps) {
   );
 
   const handlePress = () => {
-    onPress();
+    handleNext();
   };
 
   const handlePressIn = () => {
@@ -129,10 +119,10 @@ function NextButton({ scrollX, totalSize, onPress, style }: NextButtonProps) {
 
 type DotIndicatorProps = {
   index: number;
-  scrollX: SharedValue<number>;
 };
 
-function DotIndicator({ index, scrollX }: DotIndicatorProps) {
+function DotIndicator({ index }: DotIndicatorProps) {
+  const { scrollX } = useOnboardingStage();
   const inputRange = [(index - 1) * WIDTH, index * WIDTH, (index + 1) * WIDTH];
 
   const animatedStyle = useAnimatedStyle(() => {

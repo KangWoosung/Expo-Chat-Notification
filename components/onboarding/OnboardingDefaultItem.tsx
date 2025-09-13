@@ -3,24 +3,20 @@ import React from "react";
 import Animated, {
   Extrapolation,
   interpolate,
-  SharedValue,
   useAnimatedStyle,
 } from "react-native-reanimated";
 import { OnboardingItemType } from "@/app/onboarding/data";
+import { useOnboardingStage } from "@/zustand/onboarding/useOnboardingStage";
 
 type OnboardingDefaultItemProps = {
   item: OnboardingItemType;
   index: number;
-  scrollX: SharedValue<number>;
 };
 
-const { width: WIDTH, height: HEIGHT } = Dimensions.get("window");
+const { width: WIDTH } = Dimensions.get("window");
 
-const OnboardingDefaultItem = ({
-  item,
-  index,
-  scrollX,
-}: OnboardingDefaultItemProps) => {
+const OnboardingDefaultItem = ({ item, index }: OnboardingDefaultItemProps) => {
+  const { scrollX } = useOnboardingStage();
   const inputRange = [(index - 1) * WIDTH, index * WIDTH, (index + 1) * WIDTH];
 
   const titleAnimatedStyle = useAnimatedStyle(() => {

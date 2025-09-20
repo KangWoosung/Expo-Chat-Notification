@@ -182,6 +182,22 @@ const CustomDrawerContent = (props: DrawerContentComponentProps) => {
           }}
         />
         <DrawerItem
+          label="OnBoarding2"
+          icon={({ color, size }) => (
+            <Ionicons
+              name="information-circle-outline"
+              size={size}
+              color={foregroundTheme}
+            />
+          )}
+          onPress={() => router.push(`/onboarding2`)}
+          labelStyle={{
+            fontWeight: "bold",
+            color: foregroundTheme,
+            marginLeft: Platform.OS === "ios" ? -20 : 0,
+          }}
+        />
+        <DrawerItem
           label="Logout"
           icon={({ color, size }) => (
             <Ionicons name="exit-outline" size={size} color={foregroundTheme} />

@@ -17,6 +17,8 @@ import { useOnBoardingStore } from "@/zustand/useOnBoardingStore";
 import OnboardingStage from "@/components/onboarding/OnboardingStage";
 import { useOnboardingStage } from "@/zustand/onboarding/useOnboardingStage";
 import OnboardingOverlay from "@/components/onboarding/OnboardingOverlay";
+import Backdrop from "@/components/onboarding/Backdrop";
+import Blob from "@/components/onboarding/Blob";
 
 const STAGE_DELAY = 1000;
 
@@ -62,9 +64,9 @@ const OnBoardingIndex = () => {
   return (
     <View className="flex-1 items-center justify-center bg-gray-400">
       <StatusBar hidden />
-      {/* <Backdrop scrollX={scrollX} /> */}
+      <Backdrop scrollX={scrollX} />
+      <Blob scrollX={scrollX} />
       <OnboardingStage stageDelay={STAGE_DELAY} />
-      {/* <Blob scrollX={scrollX} /> */}
       <OnboardingOverlay />
       <Animated.FlatList
         ref={flatListRef}

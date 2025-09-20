@@ -48,7 +48,7 @@ export const useOnboardingStage = create<OnboardingStageState>((set, get) => ({
   // Initialize shared values
   scrollX: useSharedValue(0),
   flatListIndex: useSharedValue(0),
-  circleAnimatePosX: useSharedValue(0),
+  circleAnimatePosX: useSharedValue(-390), // INITIAL_CIRCLE_POS_X와 동일하게 설정
 
   // Animation states
   titleAnimationFinished: false,

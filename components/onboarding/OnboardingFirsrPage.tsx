@@ -8,6 +8,8 @@ import Animated, {
 import { useIsFocused } from "@react-navigation/native";
 import { Image } from "expo-image";
 import { useOnboardingStage } from "@/zustand/onboarding/useOnboardingStage";
+import { onboardingData } from "@/app/onboarding/data";
+import SVGBlob from "./SVGBlob";
 
 const ANIMATION_DELAY = 1000;
 const TITLE_ANIMATION_DURATION = 500;
@@ -37,6 +39,8 @@ const SUBTITLE_RESET_TRANSLATE_Y = 90;
 // Image Animation Constants
 const IMAGE_1_INITIAL_WIDTH = 180;
 const IMAGE_1_INITIAL_HEIGHT = 180;
+const IMAGE_1_FINAL_WIDTH = 220;
+const IMAGE_1_FINAL_HEIGHT = 220;
 const IMAGE_1_INITIAL_LEFT = -190;
 const IMAGE_1_FINAL_LEFT = -40;
 const IMAGE_1_ANIMATION_DURATION = 500;
@@ -55,9 +59,11 @@ type OnboardingFirsrPageProps = {
 };
 
 const OnboardingFirsrPage = () => {
-  const { setTitleAnimationFinished, titleAnimationFinished } =
+  const { setTitleAnimationFinished, titleAnimationFinished, scrollX } =
     useOnboardingStage();
   const isFocused = useIsFocused();
+  const TITLESTRING = onboardingData[0].title;
+  const SUBTITLESTRING = onboardingData[0].description;
 
   const titleFontSize = useSharedValue(TITLE_INITIAL_FONT_SIZE);
   const titleTranslateY = useSharedValue(TITLE_INITIAL_TRANSLATE_Y);
@@ -68,6 +74,11 @@ const OnboardingFirsrPage = () => {
   const subtitleTranslateX = useSharedValue(SUBTITLE_INITIAL_TRANSLATE_X);
   const subtitleOpacity = useSharedValue(SUBTITLE_INITIAL_OPACITY);
   const image1TranslateX = useSharedValue(IMAGE_1_INITIAL_LEFT);
+  const image1Width = useSharedValue(IMAGE_1_INITIAL_WIDTH);
+  const image1Height = useSharedValue(IMAGE_1_INITIAL_HEIGHT);
+  const image1BigWidth = useSharedValue(IMAGE_1_FINAL_WIDTH);
+  const image1BigHeight = useSharedValue(IMAGE_1_FINAL_HEIGHT);
+
   const image2TranslateX = useSharedValue(IMAGE_2_INITIAL_LEFT);
 
   const titleAnimatedStyle = useAnimatedStyle(() => {
@@ -154,18 +165,7 @@ const OnboardingFirsrPage = () => {
       image1TranslateX.value = IMAGE_1_INITIAL_LEFT;
       image2TranslateX.value = IMAGE_2_INITIAL_LEFT;
     };
-  }, [
-    isFocused,
-    setTitleAnimationFinished,
-    titleFontSize,
-    titleTranslateY,
-    titleTranslateX,
-    titleOpacity,
-    subtitleFontSize,
-    subtitleTranslateY,
-    subtitleTranslateX,
-    subtitleOpacity,
-  ]);
+  }, [isFocused]);
 
   return (
     <View className="flex-1 flex-col items-center justify-center w-full h-full p-2xl ">
@@ -194,15 +194,16 @@ const OnboardingFirsrPage = () => {
             },
           ]}
         >
-          {`EXPO \nNOTIFICATION`}
+          {TITLESTRING}
         </Animated.Text>
         <Animated.Text
           className="text-white font-normal tracking-wide text-right"
           style={[subtitleAnimatedStyle, { top: -260, zIndex: 99 }]}
         >
-          {`Stay informed. Stay connected.\n Smart notifications,\n powered by Expo.`}
+          {SUBTITLESTRING}
         </Animated.Text>
       </View>
+      <SVGBlob item={onboardingData[0]} index={0} scrollX={scrollX} />
       {/* <View
         className="flex flex-col items-center justify-center w-full h-[250px]"
         // style={{
@@ -215,30 +216,32 @@ const OnboardingFirsrPage = () => {
       {/* expo-image 버전 */}
       {titleAnimationFinished && (
         <>
-          <Animated.Image
-            source={require("@/assets/images/3962334.png")}
-            style={[
-              image1AnimatedStyle,
-              {
+          <Animated.View style={image1AnimatedStyle}>
+            <Image
+              source={require("@/assets/images/3962334.png")}
+              style={{
                 width: IMAGE_1_INITIAL_WIDTH,
                 height: IMAGE_1_INITIAL_HEIGHT,
                 position: "relative",
                 top: 100,
-              },
-            ]}
-          />
-          <Animated.Image
-            source={require("@/assets/images/20462748.png")}
-            style={[
-              image2AnimatedStyle,
-              {
+              }}
+              contentFit="contain"
+              priority="low"
+            />
+          </Animated.View>
+          <Animated.View style={image2AnimatedStyle}>
+            <Image
+              source={require("@/assets/images/20462748.png")}
+              style={{
                 width: IMAGE_2_INITIAL_WIDTH,
                 height: IMAGE_2_INITIAL_HEIGHT,
                 position: "relative",
                 top: 0,
-              },
-            ]}
-          />
+              }}
+              contentFit="contain"
+              priority="high"
+            />
+          </Animated.View>
         </>
       )}
 

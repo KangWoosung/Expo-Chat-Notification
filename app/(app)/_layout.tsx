@@ -36,9 +36,9 @@ const AppLayout = () => {
     return null;
   }
 
-  if (!isSignedIn) {
-    router.replace("/auth");
-  }
+  // if (!isSignedIn) {
+  //   router.replace("/auth");
+  // }
 
   return (
     <Stack

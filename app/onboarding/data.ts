@@ -10,26 +10,26 @@
 */
 export const onboardingData = [
   {
-    title: "Welcome to Music",
-    description: "Discover your favorite tunes",
+    title: `EXPO\nNOTIFICATION`,
+    description: `Stay informed. Stay connected.\n Smart notifications,\n powered by Expo.`,
     imageUrl: require("../../assets/images/3659793.png"),
-    baseColor: "#6B728E", // 회색빛 파랑
+    baseColor: "#BABEFA", // 회색빛 파랑
   },
   {
-    title: "Create Your Vibe",
-    description: "Make your own playlists",
+    title: `EXPO\nNOTIFICATION`,
+    description: `Delivering real-time alerts right to your pocket.\n Simple. Reliable. Instant notifications.`,
     imageUrl: require("../../assets/images/3659898.png"),
-    baseColor: "#9ebcdb", // 하늘색
+    baseColor: "#9FD4FA", // 하늘색
   },
   {
-    title: "Explore Playlists",
-    description: "Curated just for you",
+    title: `EXPO\nNOTIFICATION`,
+    description: `Powering instant connections, everywhere you go.\n Seamless notifications for a connected world.`,
     imageUrl: require("../../assets/images/3659794.png"),
     baseColor: "#9d81cc", // 보라
   },
   {
-    title: "Enjoy Anytime",
-    description: "Music on the go",
+    title: `EXPO\nNOTIFICATION`,
+    description: `Stay informed. Stay connected.\n Smart notifications,\n powered by Expo.`,
     imageUrl: require("../../assets/images/3659792.png"),
     baseColor: "#7e9ea3", // 라이트 블루
   },

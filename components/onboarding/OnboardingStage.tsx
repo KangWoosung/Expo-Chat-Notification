@@ -24,8 +24,8 @@ const { width: WINDOW_WIDTH, height: WINDOW_HEIGHT } = Dimensions.get("window");
 // onboardingData에서 baseColor만 추출하여 배경색 배열 생성
 const BGS = onboardingData.map((item) => item.baseColor);
 
-export const INITIAL_CIRCLE_POS_X = -390;
-export const INITIAL_CIRCLE_POS_Y = WINDOW_HEIGHT / 2 + 250;
+export const INITIAL_CIRCLE_POS_X = -420;
+export const INITIAL_CIRCLE_POS_Y = WINDOW_HEIGHT / 2 + 220;
 export const INITIAL_CIRCLE_R = 600;
 export const CIRCLE_ANIMATE_POS_X = INITIAL_CIRCLE_POS_X - 60;
 
@@ -55,7 +55,7 @@ const OnboardingStage = ({ stageDelay }: OnboardingStageProps) => {
       (currentIndex + 1) * WINDOW_WIDTH, // The start point of the next page (WIDTH, 2*WIDTH...)
     ];
 
-    // In the current page, the animation position, in the middle point, the animation position again in the next page
+    // 원래 로직 복원: 애니메이션 위치 사용
     return interpolate(
       scrollX.value,
       inputRange,
@@ -64,6 +64,7 @@ const OnboardingStage = ({ stageDelay }: OnboardingStageProps) => {
     );
   }, [scrollX, circleAnimatePosX]);
 
+  // 첫 번째 페이지 애니메이션
   useEffect(() => {
     if (titleAnimationFinished) {
       setTimeout(() => {
@@ -82,6 +83,23 @@ const OnboardingStage = ({ stageDelay }: OnboardingStageProps) => {
     setStageAnimationFinished,
     stageDelay,
   ]);
+
+  // 페이지 변경 시 애니메이션 트리거 (2페이지 이상)
+  useEffect(() => {
+    const currentIndex = flatListIndex.value;
+
+    if (currentIndex > 0) {
+      // 페이지가 변경되면 즉시 초기 위치로 리셋
+      circleAnimatePosX.value = INITIAL_CIRCLE_POS_X;
+
+      // 잠시 후 애니메이션 시작
+      setTimeout(() => {
+        circleAnimatePosX.value = withTiming(CIRCLE_ANIMATE_POS_X, {
+          duration: 500,
+        });
+      }, stageDelay);
+    }
+  }, [flatListIndex.value, circleAnimatePosX, stageDelay]);
 
   return (
     <Canvas style={styles.container}>

@@ -3,6 +3,7 @@ import { View, Dimensions } from "react-native";
 import { OnboardingItemType } from "@/app/onboarding/data";
 import OnboardingDefaultItem from "./OnboardingDefaultItem";
 import OnboardingFirsrPage from "./OnboardingFirsrPage";
+import OnboardingSecondPage from "./OnboardingSecondPage";
 
 const { width: WIDTH, height: HEIGHT } = Dimensions.get("window");
 
@@ -19,6 +20,8 @@ function OnboardingItem({ item, index }: OnboardingItemProps) {
     >
       {index === 0 ? (
         <OnboardingFirsrPage />
+      ) : index === 1 ? (
+        <OnboardingSecondPage />
       ) : (
         <OnboardingDefaultItem item={item} index={index} />
       )}

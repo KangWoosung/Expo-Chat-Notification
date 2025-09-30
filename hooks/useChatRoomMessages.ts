@@ -1,6 +1,7 @@
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useSupabase } from "@/contexts/SupabaseProvider";
 import { Tables } from "@/db/supabase/supabase";
+import { queryClient } from "@/lib/queryClient";
 
 // 확장된 메시지 타입 (파일 정보 포함)
 export type MessageWithFiles = Tables<"messages"> & {
@@ -37,15 +38,7 @@ export function useChatRoomMessages(roomId: string) {
           *,
           message_files(
             file_id,
-            uploaded_files(
-              file_id,
-              file_name,
-              file_size,
-              mime_type,
-              public_url,
-              user_id,
-              created_at
-            )
+            uploaded_files(*)
           )
         `
         )
@@ -75,7 +68,7 @@ export function useChatRoomMessages(roomId: string) {
 
 // 채팅방 메시지 캐시를 무효화하는 훅
 export function useInvalidateChatRoomMessages() {
-  const queryClient = useQueryClient();
+  // const queryClient = useQueryClient();
 
   return (roomId: string) => {
     queryClient.invalidateQueries({
@@ -109,4 +102,3 @@ export function getFirstFileId(message: MessageWithFiles): string | null {
   const files = getMessageFiles(message);
   return files.length > 0 ? files[0].file_id : null;
 }
-

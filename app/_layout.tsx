@@ -23,18 +23,19 @@ import {
   BottomSheetModalProvider,
 } from "@gorhom/bottom-sheet";
 import { GlobalBottomSheet } from "@/components/modals/GlobalBottomSheet";
+import { queryClient } from "@/lib/queryClient";
 
 // QueryClient 인스턴스 생성
-const queryClient = new QueryClient({
-  defaultOptions: {
-    queries: {
-      staleTime: 5 * 60 * 1000, // 5분간 데이터를 fresh로 간주
-      gcTime: 10 * 60 * 1000, // 10분간 캐시 유지
-      retry: 2,
-      refetchOnWindowFocus: false,
-    },
-  },
-});
+// const queryClient = new QueryClient({
+//   defaultOptions: {
+//     queries: {
+//       staleTime: 5 * 60 * 1000, // 5분간 데이터를 fresh로 간주
+//       gcTime: 10 * 60 * 1000, // 10분간 캐시 유지
+//       retry: 2,
+//       refetchOnWindowFocus: false,
+//     },
+//   },
+// });
 
 // Global Dealing with Bottom Sheet
 // export const globalSheetRef = { current: null as BottomSheetModal | null };

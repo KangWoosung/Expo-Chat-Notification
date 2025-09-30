@@ -137,7 +137,7 @@ export const PushTokenProvider: React.FC<PushTokenProviderProps> = ({
             push_token: expoPushToken,
             updated_at: new Date().toISOString(),
           })
-          .eq("user_id", user.id);
+          .eq("user_id", user!.id);
 
         if (error) {
           console.error("Failed to update push token:", error);

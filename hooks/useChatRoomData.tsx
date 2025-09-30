@@ -8,6 +8,7 @@
 import { Database } from "@/db/supabase/supabase";
 import { SupabaseClient } from "@supabase/supabase-js";
 import { useQuery } from "@tanstack/react-query";
+import { queryKeys } from "@/constants/queryKeys";
 
 type UseChatRoomDataProps = {
   chatRoomId: string | null;
@@ -21,7 +22,7 @@ export function useChatRoomData({
   currentUserId,
 }: UseChatRoomDataProps) {
   return useQuery({
-    queryKey: ["chatRoom", chatRoomId, currentUserId],
+    queryKey: queryKeys.chatRooms.detail(chatRoomId || "", currentUserId || ""),
     queryFn: async () => {
       if (!chatRoomId || !currentUserId || !supabase) return null;
 

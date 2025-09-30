@@ -50,7 +50,7 @@ const ChatsIndex = () => {
             setError={setError}
             isDark={isDark}
           />
-          <PresentationIndex />
+          {/* <PresentationIndex /> */}
         </>
       )}
     </View>

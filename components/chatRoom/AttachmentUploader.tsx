@@ -149,7 +149,7 @@ export default function AttachmentUploader({ roomId, onUploaded }: Props) {
         await supabase
           .from("uploaded_files")
           .insert({
-            user_id: user.id,
+            user_id: user!.id,
             file_name: fileName,
             file_size: fileSize,
             mime_type: mimeType,
@@ -166,7 +166,7 @@ export default function AttachmentUploader({ roomId, onUploaded }: Props) {
         .from("messages")
         .insert({
           room_id: roomId,
-          sender_id: user.id,
+          sender_id: user!.id,
           content: publicUrl,
           message_type: messageType,
           file_id: uploaded_files_data.file_id, // ✅ 직접 저장!

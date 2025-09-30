@@ -5,7 +5,7 @@ import {
   Pressable,
   ActivityIndicator,
 } from "react-native";
-import React, { useState } from "react";
+import React, { useState, useCallback } from "react";
 import { Tables } from "@/db/supabase/supabase";
 import { useSupabase } from "@/contexts/SupabaseProvider";
 import { router } from "expo-router";
@@ -23,12 +23,17 @@ type AllUserChatsProps = {
 };
 
 const AllUserChats = ({ currentUser, setError, isDark }: AllUserChatsProps) => {
-  const [pageStart, setPageStart] = useState(0);
-  const [pageEnd, setPageEnd] = useState(DEFAULT_PAGE_LIMIT);
+  const [allUsers, setAllUsers] = useState<Tables<"users">[]>([]);
+  const [currentPage, setCurrentPage] = useState(0);
+  const [hasMoreData, setHasMoreData] = useState(true);
+  const [isLoadingMore, setIsLoadingMore] = useState(false);
   const { supabase } = useSupabase();
 
+  const pageStart = currentPage * DEFAULT_PAGE_LIMIT;
+  const pageEnd = pageStart + DEFAULT_PAGE_LIMIT;
+
   const {
-    data: users,
+    data: newUsers,
     isLoading,
     error,
   } = useFetchAllUsers({
@@ -37,12 +42,63 @@ const AllUserChats = ({ currentUser, setError, isDark }: AllUserChatsProps) => {
     pageStart,
     pageEnd,
   });
+
+  // 새로운 데이터가 로드되면 기존 데이터에 추가
+  React.useEffect(() => {
+    if (newUsers && newUsers.length > 0) {
+      if (currentPage === 0) {
+        // 첫 페이지인 경우 기존 데이터를 대체
+        setAllUsers(newUsers);
+      } else {
+        // 추가 페이지인 경우 기존 데이터에 추가 (중복 제거)
+        setAllUsers((prev) => {
+          const existingIds = new Set(prev.map((user) => user.user_id));
+          const uniqueNewUsers = newUsers.filter(
+            (user) => !existingIds.has(user.user_id)
+          );
+          return [...prev, ...uniqueNewUsers];
+        });
+      }
+      setIsLoadingMore(false);
+
+      // 더 이상 데이터가 없으면 hasMoreData를 false로 설정
+      if (newUsers.length < DEFAULT_PAGE_LIMIT) {
+        setHasMoreData(false);
+      }
+    } else if (newUsers && newUsers.length === 0 && currentPage > 0) {
+      // 빈 배열이 반환되면 더 이상 데이터가 없음
+      setHasMoreData(false);
+      setIsLoadingMore(false);
+    }
+  }, [newUsers, currentPage]);
+
   if (error) {
     setError(error.message);
   }
-  // console.log("pageStart", pageStart);
-  // console.log("pageEnd", pageEnd);
-  // console.log("users", users);
+
+  const handleLoadMore = useCallback(() => {
+    if (!isLoadingMore && hasMoreData && !isLoading) {
+      setIsLoadingMore(true);
+      setCurrentPage((prev) => prev + 1);
+    }
+  }, [isLoadingMore, hasMoreData, isLoading]);
+
+  const renderFooter = useCallback(() => {
+    if (!isLoadingMore) return null;
+    return (
+      <View className="flex-row items-center justify-center w-full py-4">
+        <ActivityIndicator
+          size="small"
+          color={tailwindColors.primary.DEFAULT}
+        />
+      </View>
+    );
+  }, [isLoadingMore]);
+
+  console.log("currentPage", currentPage);
+  console.log("allUsers length", allUsers.length);
+  console.log("hasMoreData", hasMoreData);
+  console.log("isLoadingMore", isLoadingMore);
 
   return (
     <View className="gap-4 w-full p-0 pt-md">
@@ -51,9 +107,9 @@ const AllUserChats = ({ currentUser, setError, isDark }: AllUserChatsProps) => {
       border-0 border-slate-500 rounded-md font-semibold
       "
       >
-        All Users
+        All UserChats
       </Text>
-      {isLoading ? (
+      {isLoading && currentPage === 0 ? (
         <View className="flex-1 items-center justify-center">
           <ActivityIndicator
             size="large"
@@ -62,13 +118,12 @@ const AllUserChats = ({ currentUser, setError, isDark }: AllUserChatsProps) => {
         </View>
       ) : (
         <FlatList
-          data={users}
+          data={allUsers}
           renderItem={({ item }) => <UserItem user={item} />}
           keyExtractor={(item) => item.user_id?.toString() || ""}
-          onEndReached={() => {
-            setPageStart(pageEnd);
-            setPageEnd(pageEnd + DEFAULT_PAGE_LIMIT);
-          }}
+          onEndReached={handleLoadMore}
+          onEndReachedThreshold={0.1}
+          ListFooterComponent={renderFooter}
           className="w-full"
         />
       )}
@@ -115,13 +170,3 @@ function UserItem({ user }: { user: Tables<"users"> }) {
     </Pressable>
   );
 }
-// function Footer() {
-//   return (
-//     <View className="flex-row items-center justify-center w-full h-10">
-//       <ActivityIndicator
-//         size="large"
-//         color={tailwindColors.foreground.primary}
-//       />
-//     </View>
-//   );
-// }

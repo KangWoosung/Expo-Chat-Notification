@@ -2,6 +2,7 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useSupabase } from "@/contexts/SupabaseProvider";
 import { useUser } from "@clerk/clerk-expo";
 import { Tables } from "@/db/supabase/supabase";
+import { queryClient } from "@/lib/queryClient";
 
 type UploadedFile = Tables<"uploaded_files">;
 
@@ -143,7 +144,7 @@ export function useIncomingFiles() {
 
 // incoming 파일 캐시를 무효화하는 훅
 export function useInvalidateIncomingFiles() {
-  const queryClient = useQueryClient();
+  // const queryClient = useQueryClient();
   const { user: currentUser } = useUser();
 
   return () => {

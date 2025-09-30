@@ -37,7 +37,7 @@ export default function EachMessage({
   opponentUsers,
 }: EachMessageProps) {
   const [messageSender, setMessageSender] = useState<User | null>(null);
-  const isCurrentUser = currentUser.id === sender;
+  const isCurrentUser = currentUser?.id === sender;
   const { supabase } = useSupabase();
 
   // 🚀 파일 클릭 핸들러 (훨씬 간단해짐!)

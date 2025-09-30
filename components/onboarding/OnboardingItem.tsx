@@ -4,6 +4,7 @@ import { OnboardingItemType } from "@/app/onboarding/data";
 import OnboardingDefaultItem from "./OnboardingDefaultItem";
 import OnboardingFirsrPage from "./OnboardingFirsrPage";
 import OnboardingSecondPage from "./OnboardingSecondPage";
+import OnboardingThirdPage from "./OnboardingThirdPage";
 
 const { width: WIDTH, height: HEIGHT } = Dimensions.get("window");
 
@@ -22,6 +23,8 @@ function OnboardingItem({ item, index }: OnboardingItemProps) {
         <OnboardingFirsrPage />
       ) : index === 1 ? (
         <OnboardingSecondPage />
+      ) : index === 2 ? (
+        <OnboardingThirdPage />
       ) : (
         <OnboardingDefaultItem item={item} index={index} />
       )}

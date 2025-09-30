@@ -25,7 +25,7 @@ const InitScreenUserCard = ({
   const isOnline = useIsOnline();
   // const isOnline = false;
 
-  console.log("currentUser", currentUser.username);
+  console.log("currentUser", currentUser?.username);
   console.log("isOnline", isOnline);
 
   if (isOnline === null) {

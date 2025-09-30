@@ -18,13 +18,13 @@ import OnboardingStage from "@/components/onboarding/OnboardingStage";
 import { useOnboardingStage } from "@/zustand/onboarding/useOnboardingStage";
 import OnboardingOverlay from "@/components/onboarding/OnboardingOverlay";
 import Backdrop from "@/components/onboarding/Backdrop";
-import Blob from "@/components/onboarding/Blob";
+import SVGBlob from "@/components/onboarding/SVGBlob";
 
 const STAGE_DELAY = 1000;
 
 const OnBoardingIndex = () => {
   const { showOnBoarding, setShowOnBoarding } = useOnBoardingStore();
-  const { scrollX, flatListIndex, setFlatListRef, setOnFinishCallback } =
+  const { setFlatListRef, setOnFinishCallback, scrollX, flatListIndex } =
     useOnboardingStage();
 
   const storage = useMemo(() => new MMKV(), []);
@@ -64,8 +64,12 @@ const OnBoardingIndex = () => {
   return (
     <View className="flex-1 items-center justify-center bg-gray-400">
       <StatusBar hidden />
-      <Backdrop scrollX={scrollX} />
-      <Blob scrollX={scrollX} />
+      {/* <Backdrop scrollX={scrollX} /> */}
+      {/* <SVGBlob
+        scrollX={scrollX}
+        index={flatListIndex.value}
+        item={onboardingData[flatListIndex.value]}
+      /> */}
       <OnboardingStage stageDelay={STAGE_DELAY} />
       <OnboardingOverlay />
       <Animated.FlatList

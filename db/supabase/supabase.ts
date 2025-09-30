@@ -383,6 +383,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      create_group_chat_room: {
+        Args: { p_created_by: string; p_member_ids: string[]; p_name: string }
+        Returns: string
+      }
       find_or_create_direct_room: {
         Args: { a: string; b: string }
         Returns: string

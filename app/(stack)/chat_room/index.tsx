@@ -43,6 +43,8 @@ export default function ChatRoomIndex() {
         }
 
         // find_or_create_direct_room
+        // RPC Function find_or_create_direct_room :
+        // Function Code is in the file db/InitSchema.sql
         const { data: roomId, error: roomIdError } = await supabase
           .rpc("find_or_create_direct_room", {
             a: currentUser.id,
@@ -50,6 +52,11 @@ export default function ChatRoomIndex() {
           })
           .single();
         // console.log("ChatRoomIndex -- roomId", roomId);
+
+        if (roomIdError) {
+          console.error("Error finding or creating direct room:", roomIdError);
+          throw roomIdError;
+        }
 
         setChatRoomIndexLoading(false);
         // Move to chat room

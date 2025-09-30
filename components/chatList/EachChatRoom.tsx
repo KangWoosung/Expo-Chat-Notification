@@ -134,20 +134,28 @@ const EachChatRoom = ({
                 </Text>
               </View>
               <View className="flex flex-row items-center gap-x-xs">
-                <Ionicons
-                  name="time-outline"
-                  size={18}
-                  color={isDark ? "silver" : "gray"}
-                />
-                <Text className="text-sm text-foreground-secondary dark:text-foreground-secondaryDark ">
-                  {formatDistanceToNow(
-                    new Date(msg.last_message_sent_at || ""),
-                    {
-                      addSuffix: true,
-                      locale: ko,
-                    }
-                  )}
-                </Text>
+                {msg.last_message_sent_at ? (
+                  <>
+                    <Ionicons
+                      name="time-outline"
+                      size={18}
+                      color={isDark ? "silver" : "gray"}
+                    />
+                    <Text className="text-sm text-foreground-secondary dark:text-foreground-secondaryDark ">
+                      {formatDistanceToNow(
+                        new Date(msg.last_message_sent_at || new Date()),
+                        {
+                          addSuffix: true,
+                          locale: ko,
+                        }
+                      )}
+                    </Text>
+                  </>
+                ) : (
+                  <Text className="text-sm text-foreground-secondary dark:text-foreground-secondaryDark ">
+                    No messages yet
+                  </Text>
+                )}
               </View>
             </View>
           </TouchableOpacity>

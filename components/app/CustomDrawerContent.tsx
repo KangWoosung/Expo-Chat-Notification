@@ -116,7 +116,7 @@ const CustomDrawerContent = (props: DrawerContentComponentProps) => {
             {user?.username}
           </Text>
           <Text className="text-sm text-foreground-secondary dark:text-foreground-secondary-dark">
-            {user?.emailAddresses[0].emailAddress}
+            {user?.emailAddresses?.[0]?.emailAddress}
           </Text>
         </View>
 

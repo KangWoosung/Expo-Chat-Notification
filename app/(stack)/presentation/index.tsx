@@ -18,7 +18,7 @@ Animation Conti...
 */
 
 import { View, Text, Dimensions, StyleSheet, Pressable } from "react-native";
-import React, { useCallback, useEffect, useState } from "react";
+import React, { useCallback, useEffect, useState, useRef } from "react";
 import { Canvas, Group, Mask, Rect } from "@shopify/react-native-skia";
 import Animated, {
   useAnimatedStyle,
@@ -59,9 +59,25 @@ const PresentationIndex = () => {
   const wideRectX = useSharedValue(INITIAL_WIDE_RECT_X_OFFSET);
   const wideRectWidth = useSharedValue(WINDOW_WIDTH / 2);
 
+  // Timeout refs for cleanup
+  const animateActionTimeoutRef = useRef<number>(0);
+  const squareActionTimeoutRef = useRef<number>(0);
+  const circleActionTimeoutRef = useRef<number>(0);
+  const wideRectActionTimeoutRef = useRef<number>(0);
+
   useEffect(() => {
     console.log("wideRectWidth", wideRectWidth.value);
     return () => {
+      // Clear all timeouts on component unmount
+      if (animateActionTimeoutRef.current)
+        clearTimeout(animateActionTimeoutRef.current);
+      if (squareActionTimeoutRef.current)
+        clearTimeout(squareActionTimeoutRef.current);
+      if (circleActionTimeoutRef.current)
+        clearTimeout(circleActionTimeoutRef.current);
+      if (wideRectActionTimeoutRef.current)
+        clearTimeout(wideRectActionTimeoutRef.current);
+
       setShowStage(false);
     };
   }, []);
@@ -88,8 +104,13 @@ const PresentationIndex = () => {
   }));
 
   const animateAction = useCallback(() => {
+    // Clear previous timeout if exists
+    if (animateActionTimeoutRef.current) {
+      clearTimeout(animateActionTimeoutRef.current);
+    }
+
     // curtainWidth.value = STAGE_SPLIT_OFFSET + STAGE_SPLIT_WIDTH;
-    setTimeout(() => {
+    animateActionTimeoutRef.current = setTimeout(() => {
       curtainWidth.value = withTiming(STAGE_SPLIT_OFFSET, {
         duration: STAGE_SPLIT_DURATION,
       });
@@ -97,9 +118,14 @@ const PresentationIndex = () => {
   }, [curtainWidth]);
 
   const squareAction = useCallback(() => {
+    // Clear previous timeout if exists
+    if (squareActionTimeoutRef.current) {
+      clearTimeout(squareActionTimeoutRef.current);
+    }
+
     squareOpacity.value = 0;
     squareX.value = INITIAL_SQUARE_X_OFFSET;
-    setTimeout(() => {
+    squareActionTimeoutRef.current = setTimeout(() => {
       squareOpacity.value = withSpring(1, {
         damping: 15,
         stiffness: 150,
@@ -115,9 +141,14 @@ const PresentationIndex = () => {
   }, [squareOpacity, squareX]);
 
   const circleAction = useCallback(() => {
+    // Clear previous timeout if exists
+    if (circleActionTimeoutRef.current) {
+      clearTimeout(circleActionTimeoutRef.current);
+    }
+
     circleOpacity.value = 0;
     circleX.value = INITIAL_CIRCLE_X_OFFSET;
-    setTimeout(
+    circleActionTimeoutRef.current = setTimeout(
       () => {
         circleOpacity.value = withSpring(1, {
           damping: 15,
@@ -136,10 +167,15 @@ const PresentationIndex = () => {
   }, [circleOpacity, circleX]);
 
   const wideRectAction = useCallback(() => {
+    // Clear previous timeout if exists
+    if (wideRectActionTimeoutRef.current) {
+      clearTimeout(wideRectActionTimeoutRef.current);
+    }
+
     wideRectOpacity.value = 0;
     wideRectX.value = INITIAL_WIDE_RECT_X_OFFSET;
     wideRectWidth.value = WINDOW_WIDTH / 2;
-    setTimeout(
+    wideRectActionTimeoutRef.current = setTimeout(
       () => {
         wideRectOpacity.value = withSpring(1, {
           damping: 15,
@@ -179,14 +215,20 @@ const PresentationIndex = () => {
   // }, [squareAction]);
 
   useEffect(() => {
-    setTimeout(() => {
+    let animationStartTimeout: number;
+
+    animationStartTimeout = setTimeout(() => {
       // setShowStage(true);
       animateAction();
       squareAction();
       circleAction();
       wideRectAction();
     }, 0);
-  }, [showStage]);
+
+    return () => {
+      if (animationStartTimeout) clearTimeout(animationStartTimeout);
+    };
+  }, [showStage, animateAction, squareAction, circleAction, wideRectAction]);
 
   return (
     <View

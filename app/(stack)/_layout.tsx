@@ -72,7 +72,7 @@ const FileViewerHeaderRight = ({
             deleteFileCompletely({
               supabase,
               fileId: fileId,
-              userId: user.id,
+              userId: user?.id || "",
             });
           }}
           className="bg-background dark:bg-background-dark rounded-full p-sm"

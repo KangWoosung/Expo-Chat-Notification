@@ -66,15 +66,19 @@ const OnboardingStage = ({ stageDelay }: OnboardingStageProps) => {
 
   // 첫 번째 페이지 애니메이션
   useEffect(() => {
+    let stageAnimationTimeout: number;
+
     if (titleAnimationFinished) {
-      setTimeout(() => {
+      stageAnimationTimeout = setTimeout(() => {
         circleAnimatePosX.value = withTiming(CIRCLE_ANIMATE_POS_X, {
           duration: 500,
         });
         setStageAnimationFinished(true);
       }, stageDelay);
     }
+
     return () => {
+      if (stageAnimationTimeout) clearTimeout(stageAnimationTimeout);
       circleAnimatePosX.value = INITIAL_CIRCLE_POS_X;
     };
   }, [
@@ -87,18 +91,23 @@ const OnboardingStage = ({ stageDelay }: OnboardingStageProps) => {
   // 페이지 변경 시 애니메이션 트리거 (2페이지 이상)
   useEffect(() => {
     const currentIndex = flatListIndex.value;
+    let pageChangeAnimationTimeout: number;
 
     if (currentIndex > 0) {
       // 페이지가 변경되면 즉시 초기 위치로 리셋
       circleAnimatePosX.value = INITIAL_CIRCLE_POS_X;
 
       // 잠시 후 애니메이션 시작
-      setTimeout(() => {
+      pageChangeAnimationTimeout = setTimeout(() => {
         circleAnimatePosX.value = withTiming(CIRCLE_ANIMATE_POS_X, {
           duration: 500,
         });
       }, stageDelay);
     }
+
+    return () => {
+      if (pageChangeAnimationTimeout) clearTimeout(pageChangeAnimationTimeout);
+    };
   }, [flatListIndex.value, circleAnimatePosX, stageDelay]);
 
   return (

@@ -25,17 +25,28 @@ const StageAnimation = ({ setShowStage }: StageAnimationProps) => {
 
   // mount 후 애니메이션 실행
   useEffect(() => {
-    setTimeout(() => {
+    let titleTimeout: number;
+    let subtitleTimeout: number;
+    let showStageTimeout: number;
+
+    titleTimeout = setTimeout(() => {
       titleAnimation();
     }, 500);
-    setTimeout(() => {
+
+    subtitleTimeout = setTimeout(() => {
       subtitleAnimation();
-      setTimeout(() => {
+      showStageTimeout = setTimeout(() => {
         setShowStage(true);
       }, 500);
     }, 1000);
 
     return () => {
+      // Clear all timeouts to prevent state updates on unmounted component
+      if (titleTimeout) clearTimeout(titleTimeout);
+      if (subtitleTimeout) clearTimeout(subtitleTimeout);
+      if (showStageTimeout) clearTimeout(showStageTimeout);
+
+      // Reset animation values
       titleFontSize.value = 36;
       titleTranslateX.value = 0;
       titleTranslateY.value = 0;

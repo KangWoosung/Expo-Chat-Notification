@@ -2,6 +2,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useSupabase } from "@/contexts/SupabaseProvider";
 import { useUser } from "@clerk/clerk-expo";
 import { Tables } from "@/db/supabase/supabase";
+import { queryClient } from "@/lib/queryClient";
 
 type UploadedFile = Tables<"uploaded_files">;
 
@@ -45,7 +46,7 @@ export function useUploadedFiles() {
 
 // 파일 업로드 후 캐시를 무효화하는 훅
 export function useInvalidateUploadedFiles() {
-  const queryClient = useQueryClient();
+  // const queryClient = useQueryClient();
   const { user: currentUser } = useUser();
 
   return () => {
@@ -61,7 +62,7 @@ export function useInvalidateUploadedFiles() {
 export function useDeleteUploadedFile() {
   const { supabase } = useSupabase();
   const { user: currentUser } = useUser();
-  const queryClient = useQueryClient();
+  // const queryClient = useQueryClient();
 
   return useMutation({
     mutationFn: async (fileId: string) => {

@@ -18,7 +18,7 @@ const Signoff = () => {
     if (!user) return;
 
     try {
-      await deleteUserById(user.id);
+      await deleteUserById(user!.id);
       await signOut();
     } catch (error) {
       console.error("Error deleting user:", error);

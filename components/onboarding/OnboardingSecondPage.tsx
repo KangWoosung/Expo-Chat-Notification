@@ -1,19 +1,32 @@
-import { View, Text, Platform } from "react-native";
-import React from "react";
+import { View, Text, Platform, Dimensions } from "react-native";
+import React, { useEffect } from "react";
 import Animated from "react-native-reanimated";
 import { Image } from "expo-image";
 import { useOnboardingStage } from "@/zustand/onboarding/useOnboardingStage";
 import { useIsFocused } from "@react-navigation/native";
-import { useEffect } from "react";
 import {
   useSharedValue,
   useAnimatedStyle,
   withTiming,
+  interpolate,
+  Extrapolation,
 } from "react-native-reanimated";
+import { onboardingData } from "@/app/onboarding/data";
+
+const { width: WIDTH, height: HEIGHT } = Dimensions.get("window");
 
 const OnboardingSecondPage = () => {
-  const { setTitleAnimationFinished } = useOnboardingStage();
+  const { setTitleAnimationFinished, scrollX } = useOnboardingStage();
   const isFocused = useIsFocused();
+
+  const index = 1;
+  const circleSize = WIDTH;
+
+  const animationRange = [
+    (index - 1) * WIDTH,
+    index * WIDTH,
+    (index + 1) * WIDTH,
+  ];
 
   const titleFontSize = useSharedValue(60);
   const titleOpacity = useSharedValue(1);
@@ -33,8 +46,37 @@ const OnboardingSecondPage = () => {
     };
   });
 
+  const circleAnimatedStyle = useAnimatedStyle(
+    () => ({
+      transform: [
+        {
+          scale: interpolate(
+            scrollX.value,
+            animationRange,
+            [1, 4, 5],
+            Extrapolation.CLAMP
+          ),
+        },
+      ],
+    }),
+    [scrollX]
+  );
+
   return (
     <View className="flex-1 flex-col items-center justify-center w-full h-full p-2xl ">
+      <View className="absolute inset-0 items-center justify-start ">
+        <Animated.View
+          className="rounded-full"
+          style={[
+            {
+              width: circleSize,
+              height: circleSize,
+              backgroundColor: onboardingData[index].baseColor,
+            },
+            circleAnimatedStyle,
+          ]}
+        />
+      </View>
       <View className="flex flex-col items-center justify-center w-full h-[140px] border-0 border-blue-500">
         <Animated.Text
           className="text-white font-extrabold tracking-wide"

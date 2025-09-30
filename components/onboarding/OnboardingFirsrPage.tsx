@@ -1,15 +1,19 @@
-import { View, Platform } from "react-native";
+import { View, Platform, Dimensions } from "react-native";
 import React, { useEffect } from "react";
 import Animated, {
   useAnimatedStyle,
   useSharedValue,
   withTiming,
+  interpolate,
+  Extrapolation,
 } from "react-native-reanimated";
 import { useIsFocused } from "@react-navigation/native";
 import { Image } from "expo-image";
 import { useOnboardingStage } from "@/zustand/onboarding/useOnboardingStage";
 import { onboardingData } from "@/app/onboarding/data";
 import SVGBlob from "./SVGBlob";
+
+const { width: WIDTH, height: HEIGHT } = Dimensions.get("window");
 
 const ANIMATION_DELAY = 1000;
 const TITLE_ANIMATION_DURATION = 500;
@@ -65,6 +69,15 @@ const OnboardingFirsrPage = () => {
   const TITLESTRING = onboardingData[0].title;
   const SUBTITLESTRING = onboardingData[0].description;
 
+  const index = 0;
+  const circleSize = WIDTH;
+
+  const animationRange = [
+    (index - 1) * WIDTH,
+    index * WIDTH,
+    (index + 1) * WIDTH,
+  ];
+
   const titleFontSize = useSharedValue(TITLE_INITIAL_FONT_SIZE);
   const titleTranslateY = useSharedValue(TITLE_INITIAL_TRANSLATE_Y);
   const titleTranslateX = useSharedValue(TITLE_INITIAL_TRANSLATE_X);
@@ -113,9 +126,29 @@ const OnboardingFirsrPage = () => {
     };
   });
 
+  const circleAnimatedStyle = useAnimatedStyle(
+    () => ({
+      transform: [
+        {
+          scale: interpolate(
+            scrollX.value,
+            animationRange,
+            [1, 4, 5],
+            Extrapolation.CLAMP
+          ),
+        },
+      ],
+    }),
+    [scrollX]
+  );
+
   useEffect(() => {
+    let animationTimeout: number;
+    let titleAnimationTimeout: number;
+    let imageAnimationTimeout: number;
+
     if (isFocused) {
-      setTimeout(() => {
+      animationTimeout = setTimeout(() => {
         titleFontSize.value = withTiming(TITLE_FINAL_FONT_SIZE, {
           duration: TITLE_ANIMATION_DURATION,
         });
@@ -140,11 +173,12 @@ const OnboardingFirsrPage = () => {
         subtitleOpacity.value = withTiming(SUBTITLE_FINAL_OPACITY, {
           duration: SUBTITLE_ANIMATION_DURATION,
         });
-        setTimeout(() => {
+        titleAnimationTimeout = setTimeout(() => {
           setTitleAnimationFinished(true);
         }, SUBTITLE_ANIMATION_DURATION);
       }, ANIMATION_DELAY);
-      setTimeout(() => {
+
+      imageAnimationTimeout = setTimeout(() => {
         image1TranslateX.value = withTiming(IMAGE_1_FINAL_LEFT, {
           duration: IMAGE_1_ANIMATION_DURATION,
         });
@@ -153,7 +187,14 @@ const OnboardingFirsrPage = () => {
         });
       }, IMAGE_1_ANIMATION_DELAY);
     }
+
     return () => {
+      // Clear all timeouts to prevent state updates on unmounted component
+      if (animationTimeout) clearTimeout(animationTimeout);
+      if (titleAnimationTimeout) clearTimeout(titleAnimationTimeout);
+      if (imageAnimationTimeout) clearTimeout(imageAnimationTimeout);
+
+      // Reset animation values
       titleFontSize.value = TITLE_INITIAL_FONT_SIZE;
       titleTranslateY.value = TITLE_INITIAL_TRANSLATE_Y;
       titleTranslateX.value = TITLE_INITIAL_TRANSLATE_X;
@@ -169,6 +210,19 @@ const OnboardingFirsrPage = () => {
 
   return (
     <View className="flex-1 flex-col items-center justify-center w-full h-full p-2xl ">
+      <View className="absolute inset-0 items-center justify-start ">
+        <Animated.View
+          className="rounded-full"
+          style={[
+            {
+              width: circleSize,
+              height: circleSize,
+              backgroundColor: onboardingData[index].baseColor,
+            },
+            circleAnimatedStyle,
+          ]}
+        />
+      </View>
       <View
         className="flex flex-col items-center justify-center w-full h-[140px] 
       border-0 border-blue-500"
@@ -203,7 +257,6 @@ const OnboardingFirsrPage = () => {
           {SUBTITLESTRING}
         </Animated.Text>
       </View>
-      <SVGBlob item={onboardingData[0]} index={0} scrollX={scrollX} />
       {/* <View
         className="flex flex-col items-center justify-center w-full h-[250px]"
         // style={{

@@ -1,9 +1,17 @@
+/*
+2025-10-01 07:47:37
+Tanstack useMutation Query Key 관련, 글로벌 정책이 필요하다.
+
+
+
+*/
 // hooks/useCreateGroupChatRoom.ts
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useSupabase } from "@/contexts/SupabaseProvider";
 import { useUser } from "@clerk/clerk-expo";
 import { queryKeys } from "@/constants/queryKeys";
 import { router } from "expo-router";
+import { queryClient } from "@/lib/queryClient";
 
 interface CreateGroupChatData {
   name: string;
@@ -22,7 +30,7 @@ interface CreateGroupChatError {
 export function useCreateGroupChatRoom() {
   const { supabase } = useSupabase();
   const { user: currentUser } = useUser();
-  const queryClient = useQueryClient();
+  // const queryClient = useQueryClient();
 
   return useMutation<
     CreateGroupChatResponse,

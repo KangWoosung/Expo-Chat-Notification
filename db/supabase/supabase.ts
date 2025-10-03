@@ -95,6 +95,27 @@ export type Database = {
           },
         ]
       }
+      last_read_messages: {
+        Row: {
+          last_read_at: string | null
+          last_read_message_id: string | null
+          room_id: string
+          user_id: string
+        }
+        Insert: {
+          last_read_at?: string | null
+          last_read_message_id?: string | null
+          room_id: string
+          user_id: string
+        }
+        Update: {
+          last_read_at?: string | null
+          last_read_message_id?: string | null
+          room_id?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       message_files: {
         Row: {
           file_id: string
@@ -122,39 +143,6 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "messages"
             referencedColumns: ["message_id"]
-          },
-        ]
-      }
-      message_reads: {
-        Row: {
-          message_id: string
-          read_at: string | null
-          user_id: string
-        }
-        Insert: {
-          message_id: string
-          read_at?: string | null
-          user_id: string
-        }
-        Update: {
-          message_id?: string
-          read_at?: string | null
-          user_id?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "message_reads_message_id_fkey"
-            columns: ["message_id"]
-            isOneToOne: false
-            referencedRelation: "messages"
-            referencedColumns: ["message_id"]
-          },
-          {
-            foreignKeyName: "message_reads_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: false
-            referencedRelation: "users"
-            referencedColumns: ["user_id"]
           },
         ]
       }
@@ -345,18 +333,21 @@ export type Database = {
       users_in_room: {
         Row: {
           entered_at: string | null
+          last_seen: string | null
           room_id: string | null
           user_id: string | null
           uuid: string
         }
         Insert: {
           entered_at?: string | null
+          last_seen?: string | null
           room_id?: string | null
           user_id?: string | null
           uuid?: string
         }
         Update: {
           entered_at?: string | null
+          last_seen?: string | null
           room_id?: string | null
           user_id?: string | null
           uuid?: string
@@ -390,6 +381,10 @@ export type Database = {
       find_or_create_direct_room: {
         Args: { a: string; b: string }
         Returns: string
+      }
+      get_unread_count: {
+        Args: { message_uuid: string }
+        Returns: number
       }
       get_user_chat_rooms: {
         Args: { p_user_id: string }

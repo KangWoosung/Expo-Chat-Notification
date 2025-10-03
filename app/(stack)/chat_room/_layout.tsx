@@ -1,15 +1,20 @@
 import React from "react";
 import { Stack } from "expo-router";
+import { useChatRoom } from "@/contexts/ChatRoomProvider";
+import { ChatRoomPresenceProvider } from "@/contexts/ChatRoomPresenceContext";
 
 const ChatRoomLayout = () => {
+  const { chatRoomId } = useChatRoom();
   return (
-    <Stack
-      screenOptions={{
-        headerShown: false,
-      }}
-    >
-      <Stack.Screen name="id" />
-    </Stack>
+    <ChatRoomPresenceProvider roomId={chatRoomId || ""}>
+      <Stack
+        screenOptions={{
+          headerShown: false,
+        }}
+      >
+        <Stack.Screen name="id" />
+      </Stack>
+    </ChatRoomPresenceProvider>
   );
 };
 

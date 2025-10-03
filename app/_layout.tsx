@@ -9,7 +9,7 @@ import { GestureHandlerRootView } from "react-native-gesture-handler";
 import "@/styles/global.css";
 import { NativewindThemeProvider } from "@/contexts/NativewindThemeProvider";
 import { ClerkLoaded, ClerkProvider } from "@clerk/clerk-expo";
-import { PushTokenProvider } from "@/contexts/PushTokenProvider";
+// import { PushTokenProvider } from "@/contexts/PushTokenProvider";
 import SupabaseProvider from "@/contexts/SupabaseProvider";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { useAnimationStore } from "@/zustand/useAnimationStore";
@@ -24,6 +24,7 @@ import {
 } from "@gorhom/bottom-sheet";
 import { GlobalBottomSheet } from "@/components/modals/GlobalBottomSheet";
 import { queryClient } from "@/lib/queryClient";
+import { NotificationProvider } from "@/contexts/NotificationProvider";
 
 // QueryClient 인스턴스 생성
 // const queryClient = new QueryClient({
@@ -96,7 +97,7 @@ export default function RootLayout() {
         <ClerkLoaded>
           <QueryClientProvider client={queryClient}>
             <SupabaseProvider>
-              <PushTokenProvider>
+              <NotificationProvider>
                 <GestureHandlerRootView style={{ flex: 1 }}>
                   <NativewindThemeProvider>
                     <SafeAreaProvider>
@@ -133,7 +134,7 @@ export default function RootLayout() {
                     </SafeAreaProvider>
                   </NativewindThemeProvider>
                 </GestureHandlerRootView>
-              </PushTokenProvider>
+              </NotificationProvider>
             </SupabaseProvider>
           </QueryClientProvider>
         </ClerkLoaded>

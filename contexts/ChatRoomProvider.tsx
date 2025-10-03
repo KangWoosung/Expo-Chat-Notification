@@ -12,6 +12,8 @@ interface ChatRoomContextType {
   opponentUsers: User[];
   createdBy: string | null;
   loading: boolean;
+  isGroupChat: boolean;
+  isDirectChat: boolean;
   setChatRoomId: (id: string) => void;
 }
 
@@ -28,12 +30,20 @@ export function ChatRoomProvider({ children }: { children: React.ReactNode }) {
   const [opponentUser, setOpponentUser] = useState<User | null>(null);
   const [opponentUsers, setOpponentUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
+  const [isGroupChat, setIsGroupChat] = useState(false);
+  const [isDirectChat, setIsDirectChat] = useState(false);
 
   useEffect(() => {
     if (!supabase || !chatRoomId || !currentUser?.id) {
       setLoading(false);
       return;
     }
+
+    // Reset states when chat room changes
+    setOpponentUser(null);
+    setOpponentUsers([]);
+    setIsDirectChat(false);
+    setIsGroupChat(false);
 
     (async () => {
       setLoading(true);
@@ -85,22 +95,17 @@ export function ChatRoomProvider({ children }: { children: React.ReactNode }) {
         }
 
         setOpponentUser(opponentUserData);
+        setOpponentUsers([]); // Clear group users for direct chat
         setChatRoomName("Chat with " + opponentUserData.name);
         setChatRoomId(chatRoomId);
+        setIsDirectChat(true);
+        setIsGroupChat(false);
         setLoading(false);
       } else if (chatRoomMembersData.length > 1) {
-        // group chat room : get chat room name
-        const { data: chatRoomData, error: chatRoomError } = await supabase
-          .from("chat_rooms")
-          .select("name")
-          .eq("room_id", chatRoomId)
-          .single();
-
-        if (chatRoomError) {
-          console.error("Error fetching chat room:", chatRoomError);
-          setLoading(false);
-          return;
-        }
+        // group chat room : use already fetched chat room data
+        const groupChatRoomName = chatRoomData.name;
+        setChatRoomName("Group Chat: " + groupChatRoomName);
+        setChatRoomId(chatRoomId);
 
         // get all users data in the room
         const { data: usersInRoomData, error: usersInRoomError } =
@@ -118,9 +123,10 @@ export function ChatRoomProvider({ children }: { children: React.ReactNode }) {
           return;
         }
 
-        setChatRoomName("Group Chat: " + chatRoomData.name);
-        setChatRoomId(chatRoomId);
+        setOpponentUser(null); // Clear direct chat user for group chat
         setOpponentUsers(usersInRoomData);
+        setIsDirectChat(false);
+        setIsGroupChat(true);
         setLoading(false);
       }
     })();
@@ -135,6 +141,8 @@ export function ChatRoomProvider({ children }: { children: React.ReactNode }) {
         opponentUsers,
         createdBy,
         loading,
+        isGroupChat,
+        isDirectChat,
         setChatRoomId,
       }}
     >

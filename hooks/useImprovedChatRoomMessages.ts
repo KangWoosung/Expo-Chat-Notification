@@ -1,11 +1,11 @@
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useSupabase } from "@/contexts/SupabaseProvider";
 import { Tables } from "@/db/supabase/supabase";
-import { queryKeys } from "@/constants/queryKeys";
+import { queryKeys } from "@/lib/queryKeys";
 
 // 개선된 메시지 타입 (file_id 직접 포함)
 export type ImprovedMessage = Tables<"messages"> & {
-  uploaded_files?: Tables<"uploaded_files">; // 필요시 JOIN
+  uploaded_files?: Tables<"uploaded_files"> | null; // 필요시 JOIN
 };
 
 // Query keys (기존 호환성 유지)

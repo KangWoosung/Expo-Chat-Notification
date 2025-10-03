@@ -4,6 +4,7 @@ import {
   FlatList,
   TouchableOpacity,
   TextInput,
+  Alert,
 } from "react-native";
 import React, { useEffect, useState } from "react";
 import { useColorScheme } from "nativewind";
@@ -16,6 +17,9 @@ import CommunityCheckbox from "@/components/ui/CommunityCheckbox";
 import { Ionicons } from "@expo/vector-icons";
 import tailwindColors from "@/utils/tailwindColors";
 import { BottomSheetFlatList } from "@gorhom/bottom-sheet";
+import { globalSheetRef } from "@/app/_layout";
+import { router } from "expo-router";
+import { useCreateGroupChatRoom } from "@/hooks/useCreateGroupChatRoom";
 
 const CreateGroupChatRoom = () => {
   const { colorScheme } = useColorScheme();
@@ -24,6 +28,7 @@ const CreateGroupChatRoom = () => {
   const { supabase } = useSupabase();
   const [selectedUsers, setSelectedUsers] = useState<string[]>([]);
   const [groupChatRoomName, setGroupChatRoomName] = useState<string>("");
+  const createGroupChatMutation = useCreateGroupChatRoom();
 
   const foregroundTheme =
     tailwindColors.foreground[isDark ? "secondaryDark" : "secondary"];
@@ -41,18 +46,50 @@ const CreateGroupChatRoom = () => {
     setSelectedUsers(
       (prev) =>
         prev.includes(userId)
-          ? prev.filter((id) => id !== userId) // 제거
-          : [...prev, userId] // 추가
+          ? prev.filter((id) => id !== userId) // Remove
+          : [...prev, userId] // Add
     );
   };
 
-  const handleCreateGroupChatSubmit = () => {
-    if (groupChatRoomName.trim() === "" || selectedUsers.length === 0) {
-      setGroupChatRoomName("Default Group Chat");
+  const handleCreateGroupChatSubmit = async () => {
+    // Validation
+    if (!groupChatRoomName.trim()) {
+      Alert.alert("Error", "Please enter a group chat name");
+      return;
     }
-    console.log("Create group chat submit");
-    console.log("groupChatRoomName", groupChatRoomName);
-    console.log("selectedUsers", selectedUsers);
+
+    if (selectedUsers.length === 0) {
+      Alert.alert("Error", "Please invite at least one user");
+      return;
+    }
+
+    try {
+      console.log("Creating group chat with:", {
+        name: groupChatRoomName.trim(),
+        memberUserIds: selectedUsers,
+      });
+
+      const result = await createGroupChatMutation.mutateAsync({
+        name: groupChatRoomName.trim(),
+        memberUserIds: selectedUsers,
+      });
+
+      // On success, dismiss the BottomSheet
+      globalSheetRef.current?.dismiss();
+
+      // Navigate to the chat room
+      router.push(`/(stack)/chat_room/id/${result.roomId}`);
+
+      // Reset the state
+      setGroupChatRoomName("");
+      setSelectedUsers([]);
+    } catch (error) {
+      console.error("Group chat creation failed:", error);
+      Alert.alert(
+        "Error",
+        error instanceof Error ? error.message : "Unknown error occurred"
+      );
+    }
   };
 
   useEffect(() => {

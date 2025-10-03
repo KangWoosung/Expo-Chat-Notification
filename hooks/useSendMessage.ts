@@ -6,7 +6,7 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useSupabase } from "@/contexts/SupabaseProvider";
 import { useUser } from "@clerk/clerk-expo";
-import { queryKeys } from "@/constants/queryKeys";
+import { queryKeys } from "@/lib/queryKeys";
 
 interface SendMessageData {
   content: string;

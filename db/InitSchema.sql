@@ -152,10 +152,14 @@ create table public.users_in_room (
   uuid uuid primary key default gen_random_uuid(),
   room_id uuid references public.chat_rooms(room_id) on delete cascade,
   user_id text references public.users(user_id),
-  entered_at timestamptz default now()
+  entered_at timestamptz default now(),
+  last_seen timestamptz default now()
 );
 
 create index idx_users_in_room_user_id on public.users_in_room(user_id);
+
+alter table users_in_room
+  add constraint users_in_room_unique unique (user_id, room_id);
 
 alter table public.users_in_room enable row level security;
 
@@ -465,7 +469,7 @@ WHERE m.room_id = ?
 ORDER BY m.sent_at ASC;
 */
 -- 2025-08-31 04:08:16
--- RPC Function
+-- RPC Function - Updated to handle both direct and group chat rooms
 create or replace function public.get_user_chat_rooms(p_user_id text)
 returns table (
   room_id uuid,
@@ -494,7 +498,8 @@ as $$
     join member_rooms mr on mr.room_id = m.room_id
     order by m.room_id, m.sent_at desc
   ),
-  other_users as (
+  -- Direct chat rooms: get the other user
+  direct_other_users as (
     select
       crm.room_id,
       u.user_id,
@@ -504,19 +509,37 @@ as $$
     join public.users u on u.user_id = crm.user_id
     where crm.room_id in (select room_id from member_rooms)
       and crm.user_id <> p_user_id
+      and crm.room_id in (
+        select room_id 
+        from public.chat_rooms 
+        where type = 'direct'
+      )
+  ),
+  -- Group chat rooms: get room info (no specific other user)
+  group_rooms as (
+    select
+      cr.room_id,
+      cr.name,
+      null::text as user_id,
+      null::text as user_name,
+      null::text as avatar
+    from public.chat_rooms cr
+    where cr.room_id in (select room_id from member_rooms)
+      and cr.type = 'group'
   )
   select
     cr.room_id,
     cr.name as room_name,
-    ou.user_id as other_user_id,
-    ou.name as other_user_name,
-    ou.avatar as other_user_avatar,
+    coalesce(dou.user_id, gr.user_id) as other_user_id,
+    coalesce(dou.name, gr.user_name) as other_user_name,
+    coalesce(dou.avatar, gr.avatar) as other_user_avatar,
     lm.content as last_message_content,
     lm.message_type as last_message_type,
     lm.sent_at as last_message_sent_at
   from public.chat_rooms cr
   join member_rooms mr on cr.room_id = mr.room_id
-  left join other_users ou on ou.room_id = cr.room_id
+  left join direct_other_users dou on dou.room_id = cr.room_id
+  left join group_rooms gr on gr.room_id = cr.room_id
   left join last_messages lm on lm.room_id = cr.room_id
   order by lm.sent_at desc nulls last;
 $$;
@@ -524,7 +547,7 @@ $$;
 
 --2025-09-07 17:13:47
 -- RPC Function
--- DB에 트랜잭션 처리를 위한 함수 생성
+-- Create a function for transaction handling in the database
 CREATE OR REPLACE FUNCTION public.create_group_chat_room(
   p_name text,
   p_created_by text,
@@ -538,7 +561,7 @@ DECLARE
   new_room_id uuid;
   member_id text;
 BEGIN
-  -- 입력 유효성 검사
+  -- Input validation
   IF p_name IS NULL OR trim(p_name) = '' THEN
     RAISE EXCEPTION 'Group chat name cannot be empty';
   END IF;
@@ -547,37 +570,225 @@ BEGIN
     RAISE EXCEPTION 'At least one member must be invited';
   END IF;
 
-  -- 선택된 사용자들이 실제로 존재하는지 확인
+  -- Check if the selected users actually exist
   IF EXISTS (
-    SELECT 1 FROM unnest(p_member_ids) AS member_id
-    WHERE member_id NOT IN (SELECT user_id FROM public.users)
+    SELECT 1 FROM unnest(p_member_ids) AS selected_member_id
+    WHERE selected_member_id NOT IN (SELECT user_id FROM public.users)
   ) THEN
     RAISE EXCEPTION 'One or more selected users do not exist';
   END IF;
 
-  -- 채팅방 생성
+  -- Create the chat room
   INSERT INTO public.chat_rooms (name, created_by, type)
   VALUES (trim(p_name), p_created_by, 'group')
   RETURNING room_id INTO new_room_id;
   
-  -- 생성자를 owner로 추가
+  -- Add the creator as owner
   INSERT INTO public.chat_room_members (room_id, user_id, invited_by, role)
   VALUES (new_room_id, p_created_by, p_created_by, 'owner');
   
-  -- 선택된 멤버들을 member로 추가 (중복 제거)
-  FOR member_id IN SELECT DISTINCT unnest(p_member_ids) LOOP
-    -- 생성자는 이미 추가했으므로 제외
-    IF member_id != p_created_by THEN
-      INSERT INTO public.chat_room_members (room_id, user_id, invited_by, role)
-      VALUES (new_room_id, member_id, p_created_by, 'member')
-      ON CONFLICT (room_id, user_id) DO NOTHING;
-    END IF;
-  END LOOP;
+  -- Add the selected members as members (remove duplicates)
+  INSERT INTO public.chat_room_members (room_id, user_id, invited_by, role)
+  SELECT DISTINCT 
+    new_room_id, 
+    selected_user_id, 
+    p_created_by, 
+    'member'
+  FROM unnest(p_member_ids) AS selected_user_id
+  WHERE selected_user_id != p_created_by
+  ON CONFLICT (room_id, user_id) DO NOTHING;
   
   RETURN new_room_id;
 EXCEPTION
   WHEN OTHERS THEN
     RAISE EXCEPTION 'Failed to create group chat room: %', SQLERRM;
 END;
+$$;
+
+
+-- 2025-10-02 11:28:49
+-- Trigger Function
+create or replace function queue_notification_if_offline()
+returns trigger
+security definer  -- 여기 추가
+set search_path = public  -- 보안상 search_path 고정 권장
+as $$
+declare
+  participants text[];
+  online_users text[];
+  target_users text[];
+  target_user text;
+  sender_name text;
+  sender_avatar text;
+  message_preview text;
+  payload jsonb;
+  target_push_token text;
+begin
+  -- Member list in the room (excluding the sender)
+  select array_agg(user_id) into participants
+  from chat_room_members
+  where room_id = NEW.room_id
+    and user_id <> NEW.sender_id;
+
+  -- Currently online users
+  select array_agg(user_id) into online_users
+  from users_in_room
+  where room_id = NEW.room_id
+    and last_seen > now() - interval '30 seconds';
+
+  -- Only offline users are filtered
+  target_users := array(
+    select unnest(participants)
+    except
+    select unnest(coalesce(online_users, '{}'))
+  );
+
+  -- 4. Get sender name
+  select name into sender_name
+  from users
+  where user_id = NEW.sender_id
+  limit 1;
+
+  -- 5. Get sender avatar
+  select avatar into sender_avatar
+  from users
+  where user_id = NEW.sender_id
+  limit 1;
+
+  -- 6. Message preview (limited to 50 characters)
+  message_preview := left(NEW.content, 50);
+
+  -- 7. Insert notification for each offline user
+  foreach target_user in array target_users
+  loop
+    -- (a) Get push token
+    select push_token into target_push_token
+    from users
+    where user_id = target_user
+    limit 1;
+
+    -- (b) skip if push_token is null
+    -- if push_token is null then
+    --   continue;
+    -- end if;
+
+    -- (c) expo notification payload configuration
+    payload := jsonb_build_object(
+      'to', target_push_token,                  -- Expo push token required
+      'sound', 'default',
+      'title', 'New Message from ' || sender_name,
+      'body', message_preview,
+      'data', jsonb_build_object(
+        'room_id', NEW.room_id,
+        'message_id', NEW.message_id,
+        'sender_id', NEW.sender_id,
+        'sender_avatar', sender_avatar,
+        'target_user_id', target_user,
+        'sender_name', sender_name,
+        'messagePreview', message_preview,
+        'deepLink', format('notification_try07://chat_room/id/%s', NEW.room_id)
+      )
+    );
+
+    insert into notification_pending (user_id, expo_payload)
+    values (target_user, payload);
+  end loop;
+
+  return new;
+end;
+$$ language plpgsql;
+
+-- Create trigger
+drop trigger if exists queue_notification_if_offline_trigger on messages;
+
+create trigger queue_notification_if_offline_trigger
+after insert on messages
+for each row 
+execute procedure queue_notification_if_offline();
+
+
+
+-- 2025-10-03 06:45:26
+-- last_read_messages table
+
+-- Record the user's read position for each room
+CREATE TABLE last_read_messages (
+  room_id UUID NOT NULL,
+  user_id TEXT NOT NULL,
+  last_read_message_id UUID,
+  last_read_at TIMESTAMP WITH TIME ZONE,
+  PRIMARY KEY (room_id, user_id)
+);
+  
+ALTER TABLE last_read_messages ENABLE ROW LEVEL SECURITY;
+ALTER TABLE last_read_messages Change user_id TEXT NOT NULL;
+
+CREATE POLICY "Can insert own last_read_messages"
+  ON last_read_messages
+  FOR INSERT
+  WITH CHECK (auth.jwt()->>'sub' = user_id);
+
+CREATE POLICY "Can update own last_read_messages"
+  ON last_read_messages
+  FOR UPDATE
+  USING (auth.jwt()->>'sub' = user_id)
+  WITH CHECK (true);
+
+CREATE POLICY "Room members can read each others' last_read_messages"
+  ON last_read_messages
+  FOR SELECT
+  USING (
+    EXISTS (
+      SELECT 1
+      FROM chat_room_members crm
+      WHERE crm.room_id = last_read_messages.room_id
+        AND crm.user_id = auth.jwt()->>'sub'
+    )
+  );
+  
+
+-- drop unnecessary message_read table
+DROP TABLE IF EXISTS message_reads;
+
+
+-- 2025-10-03 06:52:29
+-- RPC Function get_unread_count
+-- Get unread message count
+create or replace function get_unread_count(message_uuid uuid)
+returns integer
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  v_room_id uuid;
+  v_sent_at timestamptz;
+  v_unread_count integer;
+begin
+  -- get room_id, sent_at of the message
+  select room_id, sent_at
+  into v_room_id, v_sent_at
+  from messages
+  where message_id = message_uuid;
+
+  if v_room_id is null then
+    return 0; -- if message is not found, return 0
+  end if;
+
+  -- calculate unread user count
+  select count(*)
+  into v_unread_count
+  from chat_room_members crm
+  left join last_read_messages lrm
+    on lrm.room_id = crm.room_id
+   and lrm.user_id::text = crm.user_id
+  where crm.room_id = v_room_id
+    and (
+      lrm.last_read_at is null
+      or lrm.last_read_at < v_sent_at
+    );
+
+  return v_unread_count;
+end;
 $$;
 

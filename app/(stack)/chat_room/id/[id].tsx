@@ -38,14 +38,14 @@ const ChatRoom = () => {
   const scrollViewRef = useRef<ScrollView>(null);
   const inputRef = useRef<TextInput | null>(null);
 
-  // 🚀 개선된 메시지 쿼리 (file_id 직접 접근)
+  // Improved message query (direct access to file_id)
   const {
     data: messages = [],
     isLoading: messagesLoading,
     error: messagesError,
   } = useImprovedChatRoomMessages(chatRoomId || "", true);
 
-  // 🚀 useMutation을 활용한 메시지 전송
+  // useMutation to send message
   const {
     sendMessage,
     isLoading: isSending,
@@ -59,14 +59,14 @@ const ChatRoom = () => {
     }
   }, [chatRoomId, setChatRoomId]);
 
-  // 메시지 에러 처리
+  // Message error handling
   useEffect(() => {
     if (messagesError) {
       console.error("Error fetching messages:", messagesError);
     }
   }, [messagesError]);
 
-  // 🚀 useMutation을 활용한 최적화된 메시지 전송
+  // useMutation to send message
   const handleSendMessage = async () => {
     if (!message.trim() || !chatRoomId || isSending) return;
 

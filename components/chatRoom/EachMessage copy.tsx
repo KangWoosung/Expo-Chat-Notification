@@ -15,7 +15,6 @@ import {
   updateMessageFileId,
 } from "@/utils/findFileIdFromUrl";
 import Animated from "react-native-reanimated";
-import MessageUnreadCountBadge from "./MessageUnreadCountBadge";
 
 type User = Tables<"users">;
 
@@ -151,51 +150,47 @@ export default function EachMessage({
       <View
         className={`flex flex-col max-w-[70%] ${isCurrentUser ? "items-end" : "items-start"}`}
       >
-        <View className="relative">
-          <View
-            className={`px-md py-sm rounded-2xl ${
-              isCurrentUser
-                ? "bg-primary text-white rounded-br-sm bg-opacity-50"
-                : "bg-card dark:bg-card-dark text-foreground dark:text-foreground-dark rounded-bl-sm border border-border dark:border-border-dark"
-            }`}
-          >
-            {message.message_type === "text" ? (
-              <Text className="text-lg leading-relaxed">{message.content}</Text>
-            ) : message.message_type === "image" ? (
-              <Pressable onPress={handleFilePress}>
-                <AnimatedImage
-                  source={{ uri: message.content }}
-                  style={{
-                    width: 150,
-                    height: 150,
-                    borderRadius: 8,
-                    backgroundColor: "transparent",
-                  }}
-                  contentFit="cover"
-                  cachePolicy="memory-disk"
-                  priority="normal"
-                  placeholder={{
-                    blurhash: "L6PZfSi_.AyE_3t7t7R**0o#DgR4",
-                  }}
-                  transition={150}
-                  sharedTransitionTag={`image-${message.message_id}`}
+        <View
+          className={`px-md py-sm rounded-2xl ${
+            isCurrentUser
+              ? "bg-primary text-white rounded-br-sm bg-opacity-50"
+              : "bg-card dark:bg-card-dark text-foreground dark:text-foreground-dark rounded-bl-sm border border-border dark:border-border-dark"
+          }`}
+        >
+          {message.message_type === "text" ? (
+            <Text className="text-lg leading-relaxed">{message.content}</Text>
+          ) : message.message_type === "image" ? (
+            <Pressable onPress={handleFilePress}>
+              <AnimatedImage
+                source={{ uri: message.content }}
+                style={{
+                  width: 150,
+                  height: 150,
+                  borderRadius: 8,
+                  backgroundColor: "transparent",
+                }}
+                contentFit="cover"
+                cachePolicy="memory-disk"
+                priority="normal"
+                placeholder={{
+                  blurhash: "L6PZfSi_.AyE_3t7t7R**0o#DgR4",
+                }}
+                transition={150}
+                sharedTransitionTag={`image-${message.message_id}`}
+              />
+            </Pressable>
+          ) : (
+            <Pressable onPress={handleFilePress}>
+              <View className="flex-row items-center gap-x-sm p-sm">
+                <Ionicons
+                  name="document-text-outline"
+                  size={36}
+                  color="white"
                 />
-              </Pressable>
-            ) : (
-              <Pressable onPress={handleFilePress}>
-                <View className="flex-row items-center gap-x-sm p-sm">
-                  <Ionicons
-                    name="document-text-outline"
-                    size={36}
-                    color="white"
-                  />
-                  <Text className="text-white text-sm">파일 보기</Text>
-                </View>
-              </Pressable>
-            )}
-          </View>
-          {/* 읽지 않은 메시지 수 뱃지 */}
-          <MessageUnreadCountBadge messageId={message.message_id} />
+                <Text className="text-white text-sm">파일 보기</Text>
+              </View>
+            </Pressable>
+          )}
         </View>
 
         <Text className="text-xs text-foreground-tertiary dark:text-foreground-tertiaryDark mt-1 px-1">
@@ -208,6 +203,27 @@ export default function EachMessage({
           })}
         </Text>
       </View>
+
+      {/* {isCurrentUser && (
+        <View className="flex flex-col items-center justify-end ml-2">
+          <Image
+            source={{
+              uri: currentUser?.imageUrl || DEFAULT_AVATAR,
+            }}
+            style={{
+              width: CHAT_ROOM_AVATAR_SIZE,
+              height: CHAT_ROOM_AVATAR_SIZE,
+              borderRadius: CHAT_ROOM_AVATAR_SIZE / 2,
+            }}
+          />
+          <Text className="text-md text-foreground-tertiary dark:text-foreground-tertiaryDark">
+            {currentUser?.username?.slice(0, 6)}
+            {currentUser?.username?.length &&
+              currentUser?.username?.length > 6 &&
+              "..."}
+          </Text>
+        </View>
+      )} */}
     </View>
   );
 }

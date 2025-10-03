@@ -122,3 +122,5 @@ npx expo install @react-native-community/checkbox
 ## Masked View
 # npx expo install react-native-masked-view
 
+## Linking
+npx expo install expo-linking

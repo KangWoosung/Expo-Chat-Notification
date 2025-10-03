@@ -9,7 +9,8 @@ Use useIsFocused hook instead!!!
 
 import { View, Text, ScrollView } from "react-native";
 import React, { useCallback, useEffect, useState } from "react";
-import { usePushToken } from "@/contexts/PushTokenProvider";
+// import { usePushToken } from "@/contexts/PushTokenProvider";
+import { useNotification } from "@/contexts/NotificationProvider";
 import { useClerk, useUser } from "@clerk/clerk-expo";
 import { useIsFocused } from "@react-navigation/native";
 
@@ -28,7 +29,7 @@ import { ANIMATION_DELAY } from "@/constants/constants";
 
 const Index = () => {
   const { expoPushToken, notification, error, isLoading, isCachedToken } =
-    usePushToken();
+    useNotification();
   const { user: currentUser } = useUser();
   const { colorScheme } = useColorScheme();
   const isDark = colorScheme === "dark";

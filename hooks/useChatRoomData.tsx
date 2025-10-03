@@ -8,7 +8,7 @@
 import { Database } from "@/db/supabase/supabase";
 import { SupabaseClient } from "@supabase/supabase-js";
 import { useQuery } from "@tanstack/react-query";
-import { queryKeys } from "@/constants/queryKeys";
+import { queryKeys } from "@/lib/queryKeys";
 
 type UseChatRoomDataProps = {
   chatRoomId: string | null;

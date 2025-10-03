@@ -4,7 +4,7 @@ import { formatDistanceToNow } from "date-fns";
 import { ko } from "date-fns/locale";
 import { Ionicons } from "@expo/vector-icons";
 import Avatar from "../chatRoom/Avatar";
-import { Database, Tables } from "@/db/supabase/supabase";
+import { Database } from "@/db/supabase/supabase";
 import { router } from "expo-router";
 import ChatRoomLoading from "../chatRoom/ChatRoomLoading";
 import Animated, {
@@ -16,8 +16,6 @@ import Animated, {
 import { useAnimationStore } from "@/zustand/useAnimationStore";
 import { useIsFocused } from "@react-navigation/native";
 import { ANIMATION_DELAY } from "@/constants/constants";
-
-type UserType = Tables<"users">;
 
 type GetUserChatRoomsRowType =
   Database["public"]["Functions"]["get_user_chat_rooms"]["Returns"][0];
@@ -55,8 +53,6 @@ const EachChatRoom = ({
   }));
 
   useEffect(() => {
-    console.log("isFocused", isFocused);
-    console.log("animationsEnabled", animationsEnabled);
     if (isFocused && animationsEnabled && animationProp) {
       chatRoomsOpacity.value = withDelay(
         ANIMATION_DELAY * (index + 1),
@@ -77,22 +73,40 @@ const EachChatRoom = ({
     };
   }, [isFocused, animationsEnabled, animationProp]);
 
-  const lastMessageString =
-    msg.last_message_type === "text"
-      ? msg.last_message_content.length > 30
-        ? msg.last_message_content.substring(0, 30) + "..."
-        : msg.last_message_content
-      : msg.last_message_type === "image"
-        ? `${msg.other_user_name} sent a photo 🖼`
-        : msg.last_message_type === "video"
-          ? `${msg.other_user_name} sent a video 🎥`
-          : msg.last_message_type === "file"
-            ? `${msg.other_user_name} sent a file 📄`
-            : `${msg.other_user_name} sent a file 📄`;
+  // Direct vs Group chat room distinction
+  const isDirectChat = msg.other_user_id !== null;
 
-  // if (isLoading) {
-  //   return <ChatRoomLoading />;
-  // }
+  // Determine chat room name
+  const chatRoomName = isDirectChat ? msg.other_user_name : msg.room_name;
+
+  // Name for avatar display (group chat: group name, direct: opponent's name)
+  const avatarName = isDirectChat ? msg.other_user_name : msg.room_name;
+
+  // Generate last message string
+  const getLastMessageString = () => {
+    if (!msg.last_message_content) return "No messages yet";
+
+    const senderName = isDirectChat ? "" : "Someone"; // Direct: omit sender name, Group: show "Someone"
+
+    switch (msg.last_message_type) {
+      case "text":
+        const content =
+          msg.last_message_content.length > 30
+            ? msg.last_message_content.substring(0, 30) + "..."
+            : msg.last_message_content;
+        return isDirectChat ? content : `${senderName}: ${content}`;
+      case "image":
+        return isDirectChat ? "Photo 🖼" : `${senderName} sent a photo 🖼`;
+      case "video":
+        return isDirectChat ? "Video 🎥" : `${senderName} sent a video 🎥`;
+      case "file":
+        return isDirectChat ? "File 📄" : `${senderName} sent a file 📄`;
+      default:
+        return isDirectChat ? "File 📄" : `${senderName} sent a file 📄`;
+    }
+  };
+
+  const lastMessageString = getLastMessageString();
 
   return (
     <>
@@ -109,11 +123,17 @@ const EachChatRoom = ({
             className="flex flex-row items-center space-x-3 p-sm py-sm gap-md rounded-lg 
     w-full "
           >
-            <Avatar
-              name={msg.other_user_name}
-              avatar={msg.other_user_avatar}
-              className="w-12 h-12"
-            />
+            {isDirectChat ? (
+              <Avatar
+                name={avatarName}
+                avatar={msg.other_user_avatar}
+                className="w-12 h-12"
+              />
+            ) : (
+              <View className="w-12 h-12 rounded-full bg-primary dark:bg-primary-dark items-center justify-center">
+                <Ionicons name="people" size={24} color="white" />
+              </View>
+            )}
             <View
               className="flex-1 flex flex-row w-full "
               id={`msg-content-${msg.room_id}`}
@@ -121,10 +141,10 @@ const EachChatRoom = ({
               <View className="flex flex-1 items-start justify-between w-full gap-0">
                 <View className="flex flex-row items-end justify-center gap-x-sm">
                   <Text className="text-lg font-light text-foreground dark:text-foreground-dark ">
-                    {msg.other_user_name}
+                    {chatRoomName}
                   </Text>
                   <Ionicons
-                    name="mail-outline"
+                    name={isDirectChat ? "mail-outline" : "people-outline"}
                     size={16}
                     color={isDark ? "silver" : "gray"}
                   />

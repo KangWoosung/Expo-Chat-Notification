@@ -34,12 +34,17 @@ import { useNavigationState } from "@react-navigation/native";
 import { Text, TouchableOpacity, View } from "react-native";
 import { FilesCategory, useTabsLayoutStore } from "@/zustand/tabsLayoutStore";
 import ChatListSubmenuTrigger from "@/components/chatList/ChatListSubmenuTrigger";
+import { useRealtimeUnreadUpdater } from "@/hooks/useRealtimeUnreadUpdater";
+import { useUnreadMessagesCount } from "@/contexts/UnreadMessagesCountProvider";
 // import { useFileView } from "@/contexts/FileViewProvider";
 
 export default function TabLayout() {
+  // Realtime Unread Updater
+  useRealtimeUnreadUpdater();
+  const { unreadMessagesCountTotal } = useUnreadMessagesCount();
+
   const state = useNavigationState((state) => state);
-  const { filesCategory, setFilesCategory, notificationCount } =
-    useTabsLayoutStore();
+  const { filesCategory, setFilesCategory } = useTabsLayoutStore();
 
   const currentRouteName =
     state.routes[state.index]?.state?.routes?.[
@@ -95,7 +100,7 @@ export default function TabLayout() {
           headerRight: () => (
             <IndexHeaderRight
               foregroundTheme={foregroundTheme}
-              notificationCount={notificationCount}
+              unreadMessagesCountTotal={unreadMessagesCountTotal}
             />
           ),
         }}
@@ -124,7 +129,10 @@ export default function TabLayout() {
             <Ionicons name="chatbox" color={color} size={size} />
           ),
           headerRight: () => (
-            <ChatRoomsHeaderRight foregroundTheme={foregroundTheme} />
+            <ChatRoomsHeaderRight
+              foregroundTheme={foregroundTheme}
+              unreadMessagesCountTotal={unreadMessagesCountTotal}
+            />
           ),
         }}
       />
@@ -132,25 +140,19 @@ export default function TabLayout() {
   );
 }
 
-type IndexHeaderRightProps = {
-  foregroundTheme: string;
-  notificationCount: number;
-};
-
-// HeaderRight Components
-const IndexHeaderRight = ({
+// Unread Messages Count Header Right
+const UnreadMessagesCountHeaderIcon = ({
   foregroundTheme,
-  notificationCount,
+  unreadMessagesCountTotal,
 }: {
   foregroundTheme: string;
-  notificationCount: number;
+  unreadMessagesCountTotal: number;
 }) => {
   return (
     <View className="flex-row items-center gap-x-sm mr-sm">
-      {notificationCount > 0 ? (
+      {unreadMessagesCountTotal > 0 ? (
         <TouchableOpacity
           onPress={() => {
-            console.log("====IndexHeaderRight onPress=====");
             // @ts-ignore
             router.push("chats/index");
           }}
@@ -163,10 +165,10 @@ const IndexHeaderRight = ({
           />
           <Text
             className="absolute -top-[-2px] -right-[-0px] bg-red-500 rounded-full 
-            w-[20px] h-[20px] text-center pt-[2px] items-center justify-center
-            text-white text-sm font-bold"
+          w-[20px] h-[20px] text-center pt-[2px] items-center justify-center
+          text-white text-sm font-bold"
           >
-            {notificationCount}
+            {unreadMessagesCountTotal}
           </Text>
         </TouchableOpacity>
       ) : (
@@ -179,6 +181,25 @@ const IndexHeaderRight = ({
         </View>
       )}
     </View>
+  );
+};
+
+// Index Header Right
+type IndexHeaderRightProps = {
+  foregroundTheme: string;
+  unreadMessagesCountTotal: number;
+};
+
+// HeaderRight Components
+const IndexHeaderRight = ({
+  foregroundTheme,
+  unreadMessagesCountTotal,
+}: IndexHeaderRightProps) => {
+  return (
+    <UnreadMessagesCountHeaderIcon
+      foregroundTheme={foregroundTheme}
+      unreadMessagesCountTotal={unreadMessagesCountTotal}
+    />
   );
 };
 
@@ -235,23 +256,17 @@ const UploadedFilesHeaderRight = ({
 
 const ChatRoomsHeaderRight = ({
   foregroundTheme,
+  unreadMessagesCountTotal,
 }: {
   foregroundTheme: string;
+  unreadMessagesCountTotal: number;
 }) => {
   return (
     <View className="flex-row items-center gap-x-sm mr-sm">
-      <TouchableOpacity
-        onPress={() => {
-          console.log("====StackHeaderRight onPress=====");
-        }}
-        className="bg-background dark:bg-background-dark rounded-full p-sm"
-      >
-        <Ionicons
-          name="notifications-outline"
-          size={HEADER_ICON_SIZE}
-          color={foregroundTheme}
-        />
-      </TouchableOpacity>
+      <UnreadMessagesCountHeaderIcon
+        foregroundTheme={foregroundTheme}
+        unreadMessagesCountTotal={unreadMessagesCountTotal}
+      />
       <ChatListSubmenuTrigger />
     </View>
   );

@@ -15,6 +15,8 @@ import tailwindColors from "@/utils/tailwindColors";
 import { useAuth, useUser } from "@clerk/clerk-expo";
 import { useColorScheme } from "nativewind";
 import NativewindThemeTogglerButton from "./NativewindThemeTogglerButton";
+import { useQueryClient } from "@tanstack/react-query";
+import { useSupabase } from "@/contexts/SupabaseProvider";
 // import ThemeSwitchAnimationButton from "./ThemeSwitchAnimationButton";
 const getRandomAvatarUri = () => {
   const randomNum = Math.floor(Math.random() * (99 - 10 + 1)) + 10;
@@ -49,6 +51,9 @@ const CustomDrawerContent = (props: DrawerContentComponentProps) => {
   const router = useRouter();
   const { signOut } = useAuth();
   const { user } = useUser();
+  const { supabase, resetSupabaseClient } = useSupabase();
+  const queryClient = useQueryClient();
+  const [isLoading, setIsLoading] = useState(false);
   const { top, bottom } = useSafeAreaInsets();
   const pathname = usePathname();
   const { nativewindColorScheme, nativeWindSetTheme } = useThemeProvider();
@@ -75,6 +80,30 @@ const CustomDrawerContent = (props: DrawerContentComponentProps) => {
   //   (route) => !route.name.includes("drawer ") && !route.name.includes("tabs")
   // );
   // const filteredState = { ...props.state, routes };
+
+  // Handle Sign Out
+  const handleSignOut = async () => {
+    if (!supabase) return;
+    setIsLoading(true);
+    try {
+      // 1️⃣ Tanstack Query 캐시 클리어 (먼저 실행)
+      queryClient.clear();
+
+      // 2️⃣ Clerk Sign Out (이것만으로 충분)
+      await signOut();
+
+      // 3️⃣ Supabase 클라이언트 리셋
+      resetSupabaseClient();
+
+      // Clerk signOut 후 session이 null이 되면
+      // SupabaseProvider의 useEffect가 자동으로
+      // supabase 클라이언트를 null로 설정함
+    } catch (err) {
+      console.error("Error during sign out:", err);
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   return (
     <View className="flex-1 flex-col  ">
@@ -202,7 +231,7 @@ const CustomDrawerContent = (props: DrawerContentComponentProps) => {
           icon={({ color, size }) => (
             <Ionicons name="exit-outline" size={size} color={foregroundTheme} />
           )}
-          onPress={() => signOut()}
+          onPress={() => handleSignOut()}
           labelStyle={{
             fontWeight: "bold",
             color: foregroundTheme,

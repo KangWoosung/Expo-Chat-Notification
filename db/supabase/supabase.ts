@@ -399,6 +399,13 @@ export type Database = {
           room_name: string
         }[]
       }
+      get_user_unread_counts: {
+        Args: { p_user_id: string }
+        Returns: {
+          room_id: string
+          unread_count: number
+        }[]
+      }
     }
     Enums: {
       message_enum_type: "text" | "file" | "image" | "video"

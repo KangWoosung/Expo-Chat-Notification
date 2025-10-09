@@ -64,10 +64,10 @@ export const NotificationProvider: React.FC<NotificationProviderProps> = ({
   const notificationListener = useRef<any>(null);
   const responseListener = useRef<any>(null);
 
-  /** Initialize notifications */
   useEffect(() => {
     let isMounted = true;
 
+    /** Initialize Push Token */
     const initializeNotifications = async () => {
       try {
         setIsLoading(true);
@@ -95,14 +95,23 @@ export const NotificationProvider: React.FC<NotificationProviderProps> = ({
 
     initializeNotifications();
 
-    /** Receive notifications in the foreground */
+    /** Receive notifications in the foreground
+     *  Notifications.addNotificationReceivedListener registers a listener
+     *  for notifications received in the foreground,
+     *  and returns an object to remove the listener.
+     */
     notificationListener.current =
       Notifications.addNotificationReceivedListener((notification) => {
         console.log("🔔 Notification Received: ", notification);
         setNotification(notification);
       });
 
-    /** When the user taps the notification */
+    /** Receive notifications in the background
+     *  and catch Tap event on the notification.
+     *  Notifications.addNotificationResponseReceivedListener registers a listener
+     *  for notifications received in the background,
+     *  and returns an object to remove the listener.
+     */
     responseListener.current =
       Notifications.addNotificationResponseReceivedListener((response) => {
         const data = response.notification.request.content.data;

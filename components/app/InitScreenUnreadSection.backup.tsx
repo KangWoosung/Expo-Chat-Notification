@@ -11,16 +11,8 @@ import EachChatRoom from "../chatList/EachChatRoom";
 import { Database } from "@/db/supabase/supabase";
 import { cn } from "@/lib/utils";
 import { useUnreadMessagesCount } from "@/contexts/UnreadMessagesCountProvider";
-import { useSupabase } from "@/contexts/SupabaseProvider";
-import { useUser } from "@clerk/clerk-expo";
-import { useFetchMyChatRooms } from "@/hooks/useFetchMyChatRooms";
 
 const UNREAD_MESSAGES_IN_SECTION_MAX_COUNT = 3;
-
-type UnreadMessagesCountRowType = {
-  room_id: string;
-  unread_count: number;
-};
 
 type GetUserChatRoomsRowType =
   Database["public"]["Functions"]["get_user_chat_rooms"]["Returns"][0];
@@ -34,75 +26,19 @@ const InitScreenUnreadSection = ({
   isDark,
   className,
 }: InitScreenUnreadSectionProps) => {
-  const { supabase } = useSupabase();
-  const { user: currentUser } = useUser();
   const [unreadMessages, setUnreadMessages] = useState<
     GetUserChatRoomsRowType[]
   >([]);
   const [moreCnt, setMoreCnt] = useState(0);
-  const [error, setError] = useState<Error | null>(null);
   const { unreadMessagesCountArray } = useUnreadMessagesCount();
-  // console.log("unreadMessagesCountArray", unreadMessagesCountArray);
-
-  const { data: chatRooms, isLoading } = useFetchMyChatRooms({
-    supabase,
-    currentUserId: currentUser?.id || null,
-  });
 
   useEffect(() => {
-    // const fetchUnreadMessages = async () => {
-    //   // const unMessages = dummyUserChatRooms;
-    //   // data: { room_id: string, unread_count: number }[]
-    //   const { data, error } = await supabase.rpc("get_user_unread_counts", {
-    //     p_user_id: currentUser.id,
-    //   });
-    //   if (error) {
-    //     console.error("Error fetching unread messages count:", error);
-    //     setError(error);
-    //   }
-
-    //   // 필요한 건, chatRooms 에 unread_count 를 추가한 Array 이다.
-    //   //
-    //   const chatRoomsWithUnreadCount = chatRooms?.map((item) => ({
-    //     ...item,
-    //     unread_count:
-    //       data?.find((d) => d.room_id === item.room_id)?.unread_count || 0,
-    //   }));
-    //   if (!chatRoomsWithUnreadCount || chatRoomsWithUnreadCount.length === 0) {
-    //     setUnreadMessages([]);
-    //   }
-    //   // 그리고, 여기서 필요한 건, unread_count > 0 인 chatRoomsWithUnreadCount Array 이다.
-    //   // 그리고, 이를 last_message_sent_at 기준으로 정렬한다.
-    //   const chatRoomsWithUnreadCountAndUnreadCountGreaterThan0 =
-    //     chatRoomsWithUnreadCount?.filter((item) => item.unread_count > 0);
-    //   if (chatRoomsWithUnreadCountAndUnreadCountGreaterThan0) {
-    //     chatRoomsWithUnreadCountAndUnreadCountGreaterThan0.sort(
-    //       (a, b) =>
-    //         new Date(b.last_message_sent_at).getTime() -
-    //         new Date(a.last_message_sent_at).getTime()
-    //     );
-    //     setUnreadMessages(chatRoomsWithUnreadCountAndUnreadCountGreaterThan0);
-    //   }
-    // };
-    // fetchUnreadMessages();
-    if (!supabase || !currentUser || !chatRooms) return;
-    const chatRoomsWithUnreadCount = chatRooms?.map((item) => ({
-      ...item,
-      unread_count:
-        unreadMessagesCountArray?.find((d) => d.room_id === item.room_id)
-          ?.unread_count || 0,
-    }));
-    const chatRoomsWithUnreadCountAndUnreadCountGreaterThan0 =
-      chatRoomsWithUnreadCount?.filter((item) => item.unread_count > 0);
-    if (chatRoomsWithUnreadCountAndUnreadCountGreaterThan0) {
-      chatRoomsWithUnreadCountAndUnreadCountGreaterThan0.sort(
-        (a, b) =>
-          new Date(b.last_message_sent_at).getTime() -
-          new Date(a.last_message_sent_at).getTime()
-      );
-      setUnreadMessages(chatRoomsWithUnreadCountAndUnreadCountGreaterThan0);
-    }
-  }, [supabase, currentUser, chatRooms, unreadMessagesCountArray]);
+    const fetchUnreadMessages = async () => {
+      const unMessages = dummyUserChatRooms;
+      setUnreadMessages(unMessages);
+    };
+    fetchUnreadMessages();
+  }, []);
 
   useEffect(() => {
     const moreCntNum =
@@ -176,7 +112,7 @@ const InitScreenUnreadSection = ({
               </Text>
             </View>
           )}
-          {moreCnt > -1 ? (
+          {moreCnt > 0 ? (
             <Text className="text-center text-foreground-secondary dark:text-foreground-secondaryDark ">
               +{moreCnt} more unread messages...
             </Text>

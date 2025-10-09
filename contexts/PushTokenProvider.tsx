@@ -1,6 +1,7 @@
 /*
-2025-07-12 22:59:10
-
+2025-10-04 01:05:36
+This component is upgraded to NotificationProvider. It is no longer used.
+이 컴포넌트는, NotificationProvider 으로 업그레이드 되었습니다. 더이상 사용되지 않습니다.
 
 */
 
@@ -64,11 +65,12 @@ export const PushTokenProvider: React.FC<PushTokenProviderProps> = ({
   useEffect(() => {
     let isMounted = true;
 
+    /** Initialize Push Token */
     const initializeNotifications = async () => {
       try {
         setIsLoading(true);
 
-        // 토큰 가져오기 (캐시 여부 확인 포함)
+        // Get the push token (including cache status)
         const { token, isCached } = await registerForPushNotificationsAsync();
 
         if (isMounted) {
@@ -91,12 +93,16 @@ export const PushTokenProvider: React.FC<PushTokenProviderProps> = ({
 
     initializeNotifications();
 
+    /** Receive notifications in the foreground */
     notificationListener.current =
       Notifications.addNotificationReceivedListener((notification) => {
         console.log("🔔 Notification Received: ", notification);
         setNotification(notification);
       });
 
+    /** Receive notifications in the background
+     *  and catch Tap event on the notification
+     */
     responseListener.current =
       Notifications.addNotificationResponseReceivedListener((response) => {
         console.log(

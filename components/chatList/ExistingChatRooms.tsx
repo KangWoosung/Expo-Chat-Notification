@@ -6,12 +6,14 @@ import { useSupabase } from "@/contexts/SupabaseProvider";
 import tailwindColors from "@/utils/tailwindColors";
 import EachChatRoom from "./EachChatRoom";
 import { useColorScheme } from "nativewind";
+import { useUnreadMessagesCount } from "@/contexts/UnreadMessagesCountProvider";
 
 const ExistingChatRooms = () => {
   const { supabase } = useSupabase();
   const { user: currentUser } = useUser();
   const { colorScheme } = useColorScheme();
   const isDark = colorScheme === "dark";
+  const { unreadMessagesCountArray } = useUnreadMessagesCount();
 
   const { data: chatRooms, isLoading } = useFetchMyChatRooms({
     supabase,
@@ -40,7 +42,12 @@ const ExistingChatRooms = () => {
         <FlatList
           data={chatRooms}
           renderItem={({ item, index }) => (
-            <EachChatRoom msg={item} isDark={isDark} index={index} />
+            <EachChatRoom
+              msg={item}
+              isDark={isDark}
+              index={index}
+              unreadMessagesCountArray={unreadMessagesCountArray}
+            />
           )}
           keyExtractor={(item) => item.room_id.toString()}
           className="w-full"

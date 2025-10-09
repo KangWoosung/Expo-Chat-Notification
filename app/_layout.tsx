@@ -25,6 +25,7 @@ import {
 import { GlobalBottomSheet } from "@/components/modals/GlobalBottomSheet";
 import { queryClient } from "@/lib/queryClient";
 import { NotificationProvider } from "@/contexts/NotificationProvider";
+import UnreadMessagesCountProvider from "@/contexts/UnreadMessagesCountProvider";
 
 // QueryClient 인스턴스 생성
 // const queryClient = new QueryClient({
@@ -84,63 +85,68 @@ export default function RootLayout() {
     return null;
   }
 
-  // Dealing with Bottom Sheet
-
-  // Render Main Screen when onBoardingFlag is false
-  if (!onBoardingFlag) {
-    return (
-      <ClerkProvider
-        tokenCache={tokenCache}
-        __experimental_resourceCache={resourceCache}
-        publishableKey={process.env.EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY || ""}
-      >
-        <ClerkLoaded>
-          <QueryClientProvider client={queryClient}>
-            <SupabaseProvider>
-              <NotificationProvider>
+  return (
+    <ClerkProvider
+      tokenCache={tokenCache}
+      __experimental_resourceCache={resourceCache}
+      publishableKey={process.env.EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY || ""}
+    >
+      <ClerkLoaded>
+        <QueryClientProvider client={queryClient}>
+          <SupabaseProvider>
+            <NotificationProvider>
+              <UnreadMessagesCountProvider>
                 <GestureHandlerRootView style={{ flex: 1 }}>
                   <NativewindThemeProvider>
                     <SafeAreaProvider>
                       {/* <SafeAreaView className="flex-1"> */}
                       <BottomSheetModalProvider>
-                        <Stack
-                          initialRouteName="(app)"
-                          screenOptions={{
-                            headerShown: false,
-                          }}
-                        >
-                          <Stack.Screen
-                            name="(app)"
-                            options={{ headerShown: false }}
-                          />
-                          <Stack.Screen
-                            name="auth"
-                            options={{ headerShown: false }}
-                          />
-                          <Stack.Screen
-                            name="sso-callback"
-                            options={{ headerShown: false }}
-                          />
-                          <Stack.Screen
-                            name="+not-found"
-                            options={{ headerShown: false }}
-                          />
-                        </Stack>
-                        {/* 전역에서 하나의 모달을 실제로 렌더링 */}
-                        <GlobalBottomSheet />
+                        {/* 온보딩 플래그에 따라 내부 컨텐츠만 바꾼다 (Provider 순서 불변) */}
+                        {!onBoardingFlag ? (
+                          <>
+                            <Stack
+                              initialRouteName="(app)"
+                              screenOptions={{
+                                headerShown: false,
+                              }}
+                            >
+                              <Stack.Screen
+                                name="(app)"
+                                options={{ headerShown: false }}
+                              />
+                              <Stack.Screen
+                                name="auth"
+                                options={{ headerShown: false }}
+                              />
+                              <Stack.Screen
+                                name="sso-callback"
+                                options={{ headerShown: false }}
+                              />
+                              <Stack.Screen
+                                name="+not-found"
+                                options={{ headerShown: false }}
+                              />
+                            </Stack>
+                            {/* 전역에서 하나의 모달을 실제로 렌더링 */}
+                            <GlobalBottomSheet />
+                          </>
+                        ) : (
+                          <OnBoardingIndex />
+                        )}
                       </BottomSheetModalProvider>
                       {/* </SafeAreaView> */}
                       <StatusBar style="auto" />
                     </SafeAreaProvider>
                   </NativewindThemeProvider>
                 </GestureHandlerRootView>
-              </NotificationProvider>
-            </SupabaseProvider>
-          </QueryClientProvider>
-        </ClerkLoaded>
-      </ClerkProvider>
-    );
-  }
+              </UnreadMessagesCountProvider>
+            </NotificationProvider>
+          </SupabaseProvider>
+        </QueryClientProvider>
+      </ClerkLoaded>
+    </ClerkProvider>
+  );
+  // }
 
   // Send to OnBoarding for onBoarding case
   // return (

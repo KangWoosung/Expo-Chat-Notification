@@ -1,11 +1,18 @@
 import { Database } from "@/db/supabase/supabase";
 import { useSession } from "@clerk/clerk-expo";
 import { createClient, SupabaseClient } from "@supabase/supabase-js";
-import { createContext, useContext, useEffect, useState } from "react";
+import {
+  createContext,
+  useCallback,
+  useContext,
+  useEffect,
+  useState,
+} from "react";
 
 type SupabaseContext = {
   supabase: SupabaseClient<Database> | null;
   isLoaded: boolean;
+  resetSupabaseClient: () => void;
 };
 
 const supabaseUrl = process.env.EXPO_PUBLIC_SUPABASE_URL!;
@@ -14,6 +21,7 @@ const supabaseAnonKey = process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY!;
 const Context = createContext<SupabaseContext>({
   supabase: null,
   isLoaded: false,
+  resetSupabaseClient: () => {},
 });
 
 type Props = {
@@ -27,8 +35,18 @@ export default function SupabaseProvider({ children }: Props) {
   );
   const [isLoaded, setIsLoaded] = useState(false);
 
+  const resetSupabaseClient = useCallback(() => {
+    setSupabase(null);
+    setIsLoaded(false);
+  }, []);
+
   useEffect(() => {
-    // if (!session) return;
+    // Clear Supabase client when session is null
+    if (!session) {
+      setSupabase(null);
+      setIsLoaded(false);
+      return;
+    }
 
     // Add Clerk Auth Token as accessToken
     if (session) {
@@ -42,7 +60,7 @@ export default function SupabaseProvider({ children }: Props) {
   }, [session]);
 
   return (
-    <Context.Provider value={{ supabase, isLoaded }}>
+    <Context.Provider value={{ supabase, isLoaded, resetSupabaseClient }}>
       {/* {!isLoaded ? <Text>Loading Supabase...</Text> : children} */}
       {children}
     </Context.Provider>
@@ -57,5 +75,6 @@ export const useSupabase = () => {
   return {
     supabase: context.supabase,
     isLoaded: context.isLoaded,
+    resetSupabaseClient: context.resetSupabaseClient,
   };
 };

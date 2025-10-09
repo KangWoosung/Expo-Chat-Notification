@@ -753,7 +753,7 @@ DROP TABLE IF EXISTS message_reads;
 
 -- 2025-10-03 06:52:29
 -- RPC Function get_unread_count
--- Get unread message count
+-- Get unread user count per message for each message
 create or replace function get_unread_count(message_uuid uuid)
 returns integer
 language plpgsql
@@ -792,3 +792,78 @@ begin
 end;
 $$;
 
+-- 2025-10-06 00:13:56
+-- RPC Function : get_user_unread_counts(user_id)
+-- Return unread message count per chat room for a given user
+create or replace function get_user_unread_counts(p_user_id text)
+returns table (
+  room_id uuid,
+  unread_count integer
+)
+language sql
+security definer
+set search_path = public
+as $$
+  select
+    crm.room_id,
+    count(distinct m.message_id) as unread_count
+  from chat_room_members crm
+  left join last_read_messages lrm
+    on lrm.room_id = crm.room_id
+   and lrm.user_id::text = crm.user_id
+  left join messages m
+    on m.room_id = crm.room_id
+   and (
+        lrm.last_read_at is null
+        or m.sent_at > lrm.last_read_at
+      )
+  where crm.user_id = p_user_id
+  group by crm.room_id
+  order by crm.room_id;
+$$;
+
+
+-- 2025-10-10 06:04:48
+-- Schemas for Realtime...
+-- Realtime publication Schemas --
+-- chat_rooms table
+alter publication supabase_realtime add table chat_rooms;
+create policy "enable realtime for chat_rooms"
+on chat_rooms
+for select
+using (auth.jwt()->>'sub' is not null);
+
+-- chat_room_members table
+alter publication supabase_realtime add table chat_room_members;
+create policy "enable realtime for chat_room_members"
+on chat_room_members
+for select
+using (auth.jwt()->>'sub' is not null);
+
+-- last_read_messages table
+alter publication supabase_realtime add table last_read_messages;
+create policy "enable realtime for last_read_messages"
+on last_read_messages
+for select
+using (auth.jwt()->>'sub' is not null);
+
+-- messages table
+alter publication supabase_realtime add table messages;
+create policy "enable realtime for messages"
+on messages
+for select
+using (auth.jwt()->>'sub' is not null);
+
+-- user_storage_usage table
+alter publication supabase_realtime add table user_storage_usage;
+create policy "enable realtime for user_storage_usage"
+on user_storage_usage
+for select
+using (auth.jwt()->>'sub' is not null);
+
+-- users_in_room table
+alter publication supabase_realtime add table users_in_room;
+create policy "enable realtime for users_in_room"
+on users_in_room 
+for select
+using (auth.jwt()->>'sub' is not null);

@@ -16,15 +16,23 @@ import Animated, {
 import { useAnimationStore } from "@/zustand/useAnimationStore";
 import { useIsFocused } from "@react-navigation/native";
 import { ANIMATION_DELAY } from "@/constants/constants";
+import ChatRoomUnreadCountBadge from "../chatRoom/ChatRoomUnreadCountBadge";
+import ChatRoomTypeBadge from "../chatRoom/ChatRoomTypeBadge";
 
 type GetUserChatRoomsRowType =
   Database["public"]["Functions"]["get_user_chat_rooms"]["Returns"][0];
+
+type UnreadMessagesCountRowType = {
+  room_id: string;
+  unread_count: number;
+};
 
 type EachChatRoomProps = {
   msg: GetUserChatRoomsRowType;
   isDark: boolean;
   index: number;
   animationProp?: boolean;
+  unreadMessagesCountArray: UnreadMessagesCountRowType[];
 };
 
 const EachChatRoom = ({
@@ -32,8 +40,10 @@ const EachChatRoom = ({
   isDark,
   index,
   animationProp = true,
+  unreadMessagesCountArray,
 }: EachChatRoomProps) => {
   const [isLoading, setIsLoading] = useState(false);
+  const [unreadMessagesCount, setUnreadMessagesCount] = useState(0);
 
   const isFocused = useIsFocused();
   const animationsEnabled = useAnimationStore((s) => s.animationsEnabled);
@@ -51,6 +61,16 @@ const EachChatRoom = ({
     opacity: chatRoomsOpacity.value,
     transform: [{ translateY: chatRoomsTranslateY.value }],
   }));
+
+  // Make unread messages count badge
+  useEffect(() => {
+    const unreadCount = unreadMessagesCountArray?.find(
+      (r) => r.room_id === msg.room_id
+    )?.unread_count;
+    if (unreadCount) {
+      setUnreadMessagesCount(unreadCount);
+    }
+  }, [unreadMessagesCountArray]);
 
   useEffect(() => {
     if (isFocused && animationsEnabled && animationProp) {
@@ -128,10 +148,16 @@ const EachChatRoom = ({
                 name={avatarName}
                 avatar={msg.other_user_avatar}
                 className="w-12 h-12"
+                unreadMessagesCount={unreadMessagesCount}
+                type={isDirectChat ? "direct" : "group"}
               />
             ) : (
-              <View className="w-12 h-12 rounded-full bg-primary dark:bg-primary-dark items-center justify-center">
+              <View className="relative w-12 h-12 rounded-full bg-primary dark:bg-primary-dark items-center justify-center">
                 <Ionicons name="people" size={24} color="white" />
+                <ChatRoomUnreadCountBadge
+                  unreadCount={unreadMessagesCount ?? 0}
+                />
+                <ChatRoomTypeBadge type="group" />
               </View>
             )}
             <View
@@ -140,7 +166,7 @@ const EachChatRoom = ({
             >
               <View className="flex flex-1 items-start justify-between w-full gap-0">
                 <View className="flex flex-row items-end justify-center gap-x-sm">
-                  <Text className="text-lg font-light text-foreground dark:text-foreground-dark ">
+                  <Text className="text-lg font-semibold text-foreground dark:text-foreground-dark ">
                     {chatRoomName}
                   </Text>
                   <Ionicons

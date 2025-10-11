@@ -867,3 +867,41 @@ create policy "enable realtime for users_in_room"
 on users_in_room 
 for select
 using (auth.jwt()->>'sub' is not null);
+
+
+-- 2025-10-12 06:33:54
+-- RPC Function : get_room_messages_unread_counts
+-- Get unread message count per message for a given room and limit and offset
+CREATE OR REPLACE FUNCTION get_room_messages_unread_counts(
+  p_room_id uuid,
+  p_limit integer DEFAULT 50,
+  p_offset integer DEFAULT 0
+)
+RETURNS TABLE(message_id uuid, unread_count bigint)
+LANGUAGE SQL
+SECURITY DEFINER
+SET search_path = public
+AS $$
+  SELECT 
+    m.message_id,
+    COUNT(crm.user_id) FILTER (
+      WHERE crm.user_id IS DISTINCT FROM m.sender_id::text
+        AND (lrm.last_read_at IS NULL OR lrm.last_read_at < m.sent_at)
+    ) AS unread_count
+  FROM chat_room_members crm
+  JOIN (
+    SELECT message_id, room_id, sent_at, sender_id
+    FROM messages
+    WHERE room_id = p_room_id
+    ORDER BY sent_at DESC
+    LIMIT p_limit OFFSET p_offset
+  ) AS m
+  ON m.room_id = crm.room_id
+  LEFT JOIN last_read_messages lrm
+    ON lrm.room_id = crm.room_id
+   AND lrm.user_id = crm.user_id
+  WHERE crm.room_id = p_room_id
+  GROUP BY m.message_id;
+$$;
+
+

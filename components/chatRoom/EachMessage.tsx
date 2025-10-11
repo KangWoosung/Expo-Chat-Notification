@@ -25,6 +25,7 @@ type EachMessageProps = {
   currentUser: any;
   opponentUser: User | null;
   opponentUsers: User[];
+  unreadCount?: number; // 🚀 Unread Count 추가
 };
 
 // expo-image용 Animated Image 생성
@@ -36,6 +37,7 @@ export default function EachMessage({
   currentUser,
   opponentUser,
   opponentUsers,
+  unreadCount = 0,
 }: EachMessageProps) {
   const [messageSender, setMessageSender] = useState<User | null>(null);
   const isCurrentUser = currentUser?.id === sender;
@@ -102,7 +104,7 @@ export default function EachMessage({
     // 1:1 chat room
     if (opponentUser) {
       senderUser = opponentUser;
-    } else if (opponentUsers.length >= 1) {
+    } else if (opponentUsers?.length >= 1) {
       senderUser = opponentUsers.find((user) => user.user_id === sender);
     }
     if (senderUser) {
@@ -195,7 +197,7 @@ export default function EachMessage({
             )}
           </View>
           {/* 읽지 않은 메시지 수 뱃지 */}
-          <MessageUnreadCountBadge messageId={message.message_id} />
+          <MessageUnreadCountBadge unreadCount={unreadCount} />
         </View>
 
         <Text className="text-xs text-foreground-tertiary dark:text-foreground-tertiaryDark mt-1 px-1">

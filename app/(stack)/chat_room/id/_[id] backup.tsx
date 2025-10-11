@@ -15,16 +15,17 @@ Navigation Titles Rules...
 
 */
 
-import { View, ScrollView, TextInput, Button } from "react-native";
+import { View, ScrollView, TextInput } from "react-native";
 import React, { useEffect, useState, useRef } from "react";
 import { useLocalSearchParams } from "expo-router";
 import { useUser } from "@clerk/clerk-expo";
+// import { Tables } from "@/db/supabase/supabase"; // 불필요
 import { useChatRoom } from "@/contexts/ChatRoomProvider";
 import { dummyUsers, dummyMessages } from "@/constants/dummyData";
 import EachMessage from "@/components/chatRoom/EachMessage";
 import InputArea from "@/components/chatRoom/InputArea";
 import ChatRoomLoading from "@/components/chatRoom/ChatRoomLoading";
-import { usePaginatedChatRoomMessages } from "@/hooks/usePaginatedChatRoomMessages";
+import { useImprovedChatRoomMessages } from "@/hooks/useImprovedChatRoomMessages";
 import { useSendMessageWithState } from "@/hooks/useSendMessage";
 
 const ChatRoom = () => {
@@ -37,16 +38,12 @@ const ChatRoom = () => {
   const scrollViewRef = useRef<ScrollView>(null);
   const inputRef = useRef<TextInput | null>(null);
 
-  // 🚀 페이지네이션 + 파일 정보 + Unread Count 통합 훅
+  // Improved message query (direct access to file_id)
   const {
-    messages,
-    unreadCounts,
+    data: messages = [],
     isLoading: messagesLoading,
-    isFetchingNextPage,
-    hasNextPage,
-    fetchNextPage,
     error: messagesError,
-  } = usePaginatedChatRoomMessages(chatRoomId || "", true);
+  } = useImprovedChatRoomMessages(chatRoomId || "", true);
 
   // useMutation to send message
   const {
@@ -105,17 +102,6 @@ const ChatRoom = () => {
           scrollViewRef.current?.scrollToEnd({ animated: false });
         }}
       >
-        {/* 더 불러오기 버튼 (상단) */}
-        {hasNextPage && (
-          <View className="py-4 items-center">
-            <Button
-              title={isFetchingNextPage ? "Loading..." : "Load More"}
-              onPress={() => fetchNextPage()}
-              disabled={isFetchingNextPage}
-            />
-          </View>
-        )}
-
         {messages?.length > 0
           ? messages.map((msg) => (
               <EachMessage
@@ -125,7 +111,6 @@ const ChatRoom = () => {
                 currentUser={currentUser}
                 opponentUser={opponentUser}
                 opponentUsers={opponentUsers}
-                unreadCount={unreadCounts[msg.message_id] || 0}
               />
             ))
           : dummyMessages.map((msg) => (
@@ -136,7 +121,6 @@ const ChatRoom = () => {
                 currentUser={currentUser}
                 opponentUser={null}
                 opponentUsers={dummyUsers}
-                unreadCount={0}
               />
             ))}
       </ScrollView>

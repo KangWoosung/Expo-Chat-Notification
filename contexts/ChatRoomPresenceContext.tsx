@@ -18,6 +18,8 @@ leaveRoom:
 import { createContext, useContext, useEffect, useRef, useState } from "react";
 import { useUser } from "@clerk/clerk-expo";
 import { useSupabase } from "./SupabaseProvider";
+import { useQueryClient } from "@tanstack/react-query";
+import { paginatedMessagesKeys } from "@/hooks/usePaginatedChatRoomMessages";
 
 type ChatRoomPresenceContextType = {
   currentRoomId: string | null;
@@ -43,6 +45,7 @@ export const ChatRoomPresenceProvider = ({
   const { user } = useUser();
   const [currentRoomId, setCurrentRoomId] = useState<string | null>(null);
   const { supabase } = useSupabase();
+  const queryClient = useQueryClient();
 
   // heartbeat interval reference
   const heartbeatRef = useRef<number | null>(null);
@@ -90,6 +93,28 @@ export const ChatRoomPresenceProvider = ({
         .limit(1)
         .single();
 
+      // ✅ Optimistic Update: 즉시 UI에 반영 (빠른 UX)
+      queryClient.setQueryData(
+        paginatedMessagesKeys.room(roomId),
+        (oldData: any) => {
+          if (!oldData?.pages) return oldData;
+
+          return {
+            ...oldData,
+            pages: oldData.pages.map((page: any) => ({
+              ...page,
+              unreadCounts: Object.keys(page.unreadCounts || {}).reduce(
+                (acc: any, messageId: string) => {
+                  acc[messageId] = 0; // 모두 읽음 처리
+                  return acc;
+                },
+                {}
+              ),
+            })),
+          };
+        }
+      );
+
       // insert into last_read_messages table
       const { error: lastReadMessagesUpsertError } = await supabase
         .from("last_read_messages")
@@ -99,6 +124,11 @@ export const ChatRoomPresenceProvider = ({
           last_read_message_id: lastMsg?.message_id ?? null,
           last_read_at: new Date().toISOString(),
         });
+
+      // ✅ 백그라운드에서 최신 데이터 refetch (DB와 동기화)
+      queryClient.invalidateQueries({
+        queryKey: paginatedMessagesKeys.room(roomId),
+      });
 
       // Clear interval if exists
       if (heartbeatRef.current) {

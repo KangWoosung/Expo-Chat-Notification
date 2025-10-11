@@ -69,7 +69,7 @@ const UnreadMessagesCountProvider = ({
       console.error("Error fetching unread messages count:", error);
       setError(error);
     } else {
-      console.log("#######data", data);
+      console.log("#######Unread data", data);
       setUnreadMessagesCountArray(data);
       setUnreadMessagesCountTotal(
         (data ?? []).reduce((acc, curr) => acc + curr.unread_count, 0)

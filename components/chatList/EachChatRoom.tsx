@@ -111,8 +111,8 @@ const EachChatRoom = ({
     switch (msg.last_message_type) {
       case "text":
         const content =
-          msg.last_message_content.length > 30
-            ? msg.last_message_content.substring(0, 30) + "..."
+          msg.last_message_content?.length > 30
+            ? msg.last_message_content?.substring(0, 30) + "..."
             : msg.last_message_content;
         return isDirectChat ? content : `${senderName}: ${content}`;
       case "image":

@@ -382,6 +382,13 @@ export type Database = {
         Args: { a: string; b: string }
         Returns: string
       }
+      get_room_messages_unread_counts: {
+        Args: { p_limit?: number; p_offset?: number; p_room_id: string }
+        Returns: {
+          message_id: string
+          unread_count: number
+        }[]
+      }
       get_unread_count: {
         Args: { message_uuid: string }
         Returns: number

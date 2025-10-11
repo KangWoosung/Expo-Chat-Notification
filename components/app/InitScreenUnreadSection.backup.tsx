@@ -42,8 +42,8 @@ const InitScreenUnreadSection = ({
 
   useEffect(() => {
     const moreCntNum =
-      unreadMessages.length > UNREAD_MESSAGES_IN_SECTION_MAX_COUNT
-        ? unreadMessages.length - UNREAD_MESSAGES_IN_SECTION_MAX_COUNT
+      unreadMessages?.length > UNREAD_MESSAGES_IN_SECTION_MAX_COUNT
+        ? unreadMessages?.length - UNREAD_MESSAGES_IN_SECTION_MAX_COUNT
         : 0;
     setMoreCnt(moreCntNum);
   }, [unreadMessages]);
@@ -76,23 +76,23 @@ const InitScreenUnreadSection = ({
             >
               Unread Messages
             </Text>
-            {unreadMessages.length > 0 ? (
+            {unreadMessages?.length > 0 ? (
               <View className="flex items-center justify-center">
                 <BadgeWithIcon
                   className="bg-yellow-600 dark:bg-yellow-600 border-0 text-accent-foreground ml-auto"
                   dot={false}
                   dotSize={10}
-                  label={unreadMessages.length}
+                  label={unreadMessages?.length}
                   textClassName="text-md font-medium text-foreground dark:text-foreground-dark"
                 >
-                  {unreadMessages.length}
+                  {unreadMessages?.length}
                 </BadgeWithIcon>
               </View>
             ) : null}
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-0 p-sm pb-xs gap-xs">
-          {unreadMessages.length > 0 ? (
+          {unreadMessages?.length > 0 ? (
             unreadMessages
               .slice(0, UNREAD_MESSAGES_IN_SECTION_MAX_COUNT)
               .map((msg, index) => (

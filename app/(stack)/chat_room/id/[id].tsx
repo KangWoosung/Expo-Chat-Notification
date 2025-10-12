@@ -26,6 +26,7 @@ import InputArea from "@/components/chatRoom/InputArea";
 import ChatRoomLoading from "@/components/chatRoom/ChatRoomLoading";
 import { usePaginatedChatRoomMessages } from "@/hooks/usePaginatedChatRoomMessages";
 import { useSendMessageWithState } from "@/hooks/useSendMessage";
+import { queryClient } from "@/lib/queryClient";
 
 const ChatRoom = () => {
   const { id: chatRoomId } = useLocalSearchParams<{ id: string }>();
@@ -57,9 +58,12 @@ const ChatRoom = () => {
 
   // Set the chatRoomId from params to context
   useEffect(() => {
+    if (!chatRoomId) return;
     if (chatRoomId) {
       setChatRoomId(chatRoomId as string);
     }
+    // 채팅룸에 들어올 때마다 unreadCount 새로고침
+    // queryClient.invalidateQueries(['unreadCount', user?.id]);
   }, [chatRoomId, setChatRoomId]);
 
   // Message error handling

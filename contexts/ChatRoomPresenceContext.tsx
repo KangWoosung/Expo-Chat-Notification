@@ -12,14 +12,35 @@ leaveRoom:
 - delete from users_in_room table
 - stop heartbeat interval
 
+역할: "채팅룸 생명주기 관리"
+
+enterRoom():
+  ✅ users_in_room 테이블에 등록
+  ✅ last_read_messages 업데이트 (읽음 처리)
+  ✅ 캐시 Optimistic Update (-1)
+  ✅ Heartbeat 시작
+
+leaveRoom():
+  ✅ users_in_room에서 제거
+  ✅ 캐시 제거 (fresh start)
+  ✅ Heartbeat 정지
+
 
 */
 
-import { createContext, useContext, useEffect, useRef, useState } from "react";
+import {
+  createContext,
+  useCallback,
+  useContext,
+  useEffect,
+  useRef,
+  useState,
+} from "react";
 import { useUser } from "@clerk/clerk-expo";
 import { useSupabase } from "./SupabaseProvider";
 import { useQueryClient } from "@tanstack/react-query";
 import { paginatedMessagesKeys } from "@/hooks/usePaginatedChatRoomMessages";
+import { myChatRoomsKeys } from "@/hooks/useMyChatRoomsWithUnread";
 
 type ChatRoomPresenceContextType = {
   currentRoomId: string | null;
@@ -50,7 +71,7 @@ export const ChatRoomPresenceProvider = ({
   // heartbeat interval reference
   const heartbeatRef = useRef<number | null>(null);
 
-  const leaveRoom = async () => {
+  const leaveRoom = useCallback(async () => {
     if (!user?.id || !roomId || !supabase) return;
     try {
       setCurrentRoomId(null);
@@ -61,6 +82,32 @@ export const ChatRoomPresenceProvider = ({
         heartbeatRef.current = null;
       }
 
+      // ✅ 1. Optimistic Update: 채팅룸 목록의 unread count를 0으로
+      queryClient.setQueryData(
+        myChatRoomsKeys.user(user.id),
+        (oldData: any) => {
+          if (!oldData) return oldData;
+
+          return {
+            ...oldData,
+            unreadCounts: {
+              ...oldData.unreadCounts,
+              [roomId]: 0, // 해당 룸을 0으로
+            },
+          };
+        }
+      );
+
+      // ✅ 2. 채팅룸 내부 캐시 제거: 다음 입장 시 fresh data fetch
+      queryClient.removeQueries({
+        queryKey: paginatedMessagesKeys.room(roomId),
+      });
+
+      // ✅ 3. 채팅룸 목록 캐시 invalidate: DB 값으로 검증
+      queryClient.invalidateQueries({
+        queryKey: myChatRoomsKeys.user(user.id),
+      });
+
       // delete from users_in_room table
       await supabase
         .from("users_in_room")
@@ -70,9 +117,9 @@ export const ChatRoomPresenceProvider = ({
     } catch (err) {
       console.error("Failed to exit room:", err);
     }
-  };
+  }, [user?.id, roomId, supabase, queryClient]);
 
-  const enterRoom = async () => {
+  const enterRoom = useCallback(async () => {
     if (!user?.id || !roomId || !supabase) return;
     try {
       setCurrentRoomId(roomId);
@@ -85,7 +132,7 @@ export const ChatRoomPresenceProvider = ({
       });
 
       // get last message id in the room
-      const { data: lastMsg, error: lastMsgError } = await supabase
+      const { data: lastMsg } = await supabase
         .from("messages")
         .select("message_id, sent_at")
         .eq("room_id", roomId)
@@ -93,39 +140,16 @@ export const ChatRoomPresenceProvider = ({
         .limit(1)
         .single();
 
-      // ✅ Optimistic Update: 즉시 UI에 반영 (빠른 UX)
-      queryClient.setQueryData(
-        paginatedMessagesKeys.room(roomId),
-        (oldData: any) => {
-          if (!oldData?.pages) return oldData;
-
-          return {
-            ...oldData,
-            pages: oldData.pages.map((page: any) => ({
-              ...page,
-              unreadCounts: Object.keys(page.unreadCounts || {}).reduce(
-                (acc: any, messageId: string) => {
-                  acc[messageId] = 0; // 모두 읽음 처리
-                  return acc;
-                },
-                {}
-              ),
-            })),
-          };
-        }
-      );
-
       // insert into last_read_messages table
-      const { error: lastReadMessagesUpsertError } = await supabase
-        .from("last_read_messages")
-        .upsert({
-          user_id: user.id,
-          room_id: roomId,
-          last_read_message_id: lastMsg?.message_id ?? null,
-          last_read_at: new Date().toISOString(),
-        });
+      await supabase.from("last_read_messages").upsert({
+        user_id: user.id,
+        room_id: roomId,
+        last_read_message_id: lastMsg?.message_id ?? null,
+        last_read_at: new Date().toISOString(),
+      });
 
-      // ✅ 백그라운드에서 최신 데이터 refetch (DB와 동기화)
+      // ✅ last_read_messages 업데이트 후 정확한 unread count를 다시 가져오기
+      // Optimistic Update 대신 invalidate를 사용하여 DB의 정확한 값을 표시
       queryClient.invalidateQueries({
         queryKey: paginatedMessagesKeys.room(roomId),
       });
@@ -153,7 +177,7 @@ export const ChatRoomPresenceProvider = ({
     } catch (err) {
       console.error("Failed to enter room:", err);
     }
-  };
+  }, [user?.id, roomId, supabase, queryClient]);
 
   useEffect(() => {
     if (!user?.id || !roomId || !supabase) return;
@@ -163,7 +187,7 @@ export const ChatRoomPresenceProvider = ({
     return () => {
       leaveRoom().catch((err) => console.error("Cleanup failed:", err));
     };
-  }, [user?.id, roomId, supabase]);
+  }, [user?.id, roomId, supabase, enterRoom, leaveRoom]);
 
   return (
     <ChatRoomPresenceContext.Provider

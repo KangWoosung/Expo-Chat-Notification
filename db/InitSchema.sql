@@ -795,6 +795,7 @@ $$;
 -- 2025-10-06 00:13:56
 -- RPC Function : get_user_unread_counts(user_id)
 -- Return unread message count per chat room for a given user
+-- exclude my own messages
 create or replace function get_user_unread_counts(p_user_id text)
 returns table (
   room_id uuid,
@@ -813,6 +814,7 @@ as $$
    and lrm.user_id::text = crm.user_id
   left join messages m
     on m.room_id = crm.room_id
+   and m.sender_id::text != p_user_id -- ✅ exclude my own messages
    and (
         lrm.last_read_at is null
         or m.sent_at > lrm.last_read_at

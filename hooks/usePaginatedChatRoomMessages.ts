@@ -4,6 +4,17 @@
 - React Query의 useInfiniteQuery 사용
 - 파일 정보 자동 조합
 - Unread Count 포함
+
+역할: "메시지 + Unread Count 제공"
+✅ 페이지네이션 지원 (range query)
+✅ 메시지 데이터 fetch
+✅ 파일 정보 조합
+✅ Unread Count 통합
+✅ React Query 캐시 관리
+
+반환:
+  - messages: ImprovedMessage[]
+  - unreadCounts: { [messageId]: count }
 */
 // hooks/usePaginatedChatRoomMessages.ts
 import { useInfiniteQuery } from "@tanstack/react-query";

@@ -7,6 +7,7 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useSupabase } from "@/contexts/SupabaseProvider";
 import { useUser } from "@clerk/clerk-expo";
 import { queryKeys } from "@/lib/queryKeys";
+import { paginatedMessagesKeys } from "./usePaginatedChatRoomMessages";
 
 interface SendMessageData {
   content: string;
@@ -61,12 +62,17 @@ export function useSendMessage() {
         queryKey: queryKeys.messages.improved(roomId, true),
       });
 
-      // 3. 내 채팅방 목록 캐시 무효화 (최신 메시지 업데이트를 위해)
+      // 3. 페이지네이션된 메시지 캐시 무효화 (unread count 포함)
+      queryClient.invalidateQueries({
+        queryKey: paginatedMessagesKeys.room(roomId),
+      });
+
+      // 4. 내 채팅방 목록 캐시 무효화 (최신 메시지 업데이트를 위해)
       queryClient.invalidateQueries({
         queryKey: queryKeys.chatRooms.mine(currentUser.id),
       });
 
-      // 4. 읽지 않은 메시지 개수 캐시 무효화
+      // 5. 읽지 않은 메시지 개수 캐시 무효화
       queryClient.invalidateQueries({
         queryKey: queryKeys.unread.all,
       });

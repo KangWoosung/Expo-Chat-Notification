@@ -13,6 +13,7 @@ import React, {
 } from "react";
 import { useSupabase } from "./SupabaseProvider";
 import { useUser } from "@clerk/clerk-expo";
+import { queryClient } from "@/lib/queryClient";
 
 interface UnreadMessagesCountContextType {
   unreadMessagesCountArray: UnreadMessagesCountRowType[];
@@ -62,6 +63,7 @@ const UnreadMessagesCountProvider = ({
   const fetchUnreadMessagesCount = async () => {
     if (!supabase || !user?.id) return;
     setIsLoading(true);
+
     const { data, error } = await supabase.rpc("get_user_unread_counts", {
       p_user_id: user.id,
     });

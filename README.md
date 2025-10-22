@@ -12,6 +12,7 @@ A **Telegram-like real-time chat application** built with Expo, Supabase, and Cl
 - **Supabase Realtime** – Live chat messaging
 - **Supabase Edge Functions** – Notification handling logic
 - **Expo Notifications** – Push notifications (via APNs for iOS, FCM for Android)
+- **Tanstack Query** – Caching Queries
 
 ---
 

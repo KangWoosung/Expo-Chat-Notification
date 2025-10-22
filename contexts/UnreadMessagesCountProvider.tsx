@@ -3,7 +3,7 @@
 
 Provider for unread messages count per chat room.
 
-*/
+
 import React, {
   createContext,
   ReactNode,
@@ -110,3 +110,5 @@ const UnreadMessagesCountProvider = ({
 };
 
 export default UnreadMessagesCountProvider;
+
+*/

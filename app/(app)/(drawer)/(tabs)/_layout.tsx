@@ -34,14 +34,12 @@ import { useNavigationState } from "@react-navigation/native";
 import { Text, TouchableOpacity, View } from "react-native";
 import { FilesCategory, useTabsLayoutStore } from "@/zustand/tabsLayoutStore";
 import ChatListSubmenuTrigger from "@/components/chatList/ChatListSubmenuTrigger";
-import { useRealtimeUnreadUpdater } from "@/hooks/useRealtimeUnreadUpdater";
-import { useUnreadMessagesCount } from "@/contexts/UnreadMessagesCountProvider";
-// import { useFileView } from "@/contexts/FileViewProvider";
+import { useUnreadTotal } from "@/zustand/useChatRoomsStore";
 
 export default function TabLayout() {
-  // Realtime Unread Updater
-  useRealtimeUnreadUpdater();
-  const { unreadMessagesCountTotal } = useUnreadMessagesCount();
+  // Zustand store에서 전체 unread count 가져오기
+  // ChatRoomsProvider가 자동으로 Realtime 업데이트 및 동기화 처리
+  const unreadMessagesCountTotal = useUnreadTotal();
 
   const state = useNavigationState((state) => state);
   const { filesCategory, setFilesCategory } = useTabsLayoutStore();

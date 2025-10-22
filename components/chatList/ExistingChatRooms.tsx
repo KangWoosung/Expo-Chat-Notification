@@ -1,39 +1,26 @@
 import { View, Text, FlatList, ActivityIndicator } from "react-native";
 import React from "react";
-import { useFetchMyChatRooms } from "@/hooks/useFetchMyChatRooms";
-import { useUser } from "@clerk/clerk-expo";
-import { useSupabase } from "@/contexts/SupabaseProvider";
 import tailwindColors from "@/utils/tailwindColors";
-import EachChatRoom from "./EachChatRoom";
 import { useColorScheme } from "nativewind";
-import { useUnreadMessagesCount } from "@/contexts/UnreadMessagesCountProvider";
-import { useMyChatRoomsWithUnread } from "@/hooks/useMyChatRoomsWithUnread";
+import { useChatRoomsStore } from "@/zustand/useChatRoomsStore";
 import EachChatRoomWithHookData from "./EachChatRoomWithHookData";
 
 const ExistingChatRooms = () => {
-  const { supabase } = useSupabase();
-  const { user: currentUser } = useUser();
   const { colorScheme } = useColorScheme();
   const isDark = colorScheme === "dark";
-  // const { unreadMessagesCountArray } = useUnreadMessagesCount();
-
-  // const { data: chatRooms, isLoading } = useFetchMyChatRooms({
-  //   supabase,
-  //   currentUserId: currentUser?.id || null,
-  // });
 
   /**
-   * 내 채팅룸 목록과 각 룸의 unread count를 가져오는 훅
+   * Zustand store에서 채팅룸 목록과 unread count 가져오기
    *
-   *   chatRooms: 내가 속한 채팅룸 목록
-   *   unreadCounts: 각 룸별 내가 읽지 않은 메시지 수
-   *   totalUnreadCount: 모든 룸의 unread 합계
-   *   isLoading: 로딩 상태
-   *   error: 에러
-   *   refetch: 수동 refetch 함수
+   * ChatRoomsProvider가 React Query + Realtime으로 데이터를 관리하며,
+   * 이 데이터를 Zustand에 동기화하여 모든 컴포넌트가 공유합니다.
+   *
+   * 특징:
+   * - 앱 포그라운드 복귀 시 자동 refetch
+   * - 네트워크 재연결 시 자동 동기화
+   * - Realtime 업데이트 자동 반영
    */
-  const { chatRooms, unreadCounts, totalUnreadCount, isLoading } =
-    useMyChatRoomsWithUnread();
+  const { chatRooms, unreadCounts, isLoading } = useChatRoomsStore();
 
   return (
     <View className="gap-4 w-full p-0 pt-md">

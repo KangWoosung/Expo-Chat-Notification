@@ -907,3 +907,73 @@ AS $$
 $$;
 
 
+-- 2025-10-14 18:16:27
+-- RPC Function : get_room_messages_unread_counts 
+-- Get messages with unread counts, grouped by date
+CREATE OR REPLACE FUNCTION get_room_messages_unread_counts_by_date( 
+  p_room_id uuid, 
+  p_limit integer DEFAULT 50, 
+  p_offset integer DEFAULT 0,
+  p_timezone text DEFAULT 'UTC'  -- 타임존 파라미터 추가
+) 
+RETURNS TABLE(
+  message_id uuid,
+  sent_at timestamptz,
+  sender_id uuid,
+  message_date date,  -- 날짜 그룹 키
+  is_date_separator boolean,  -- 날짜 구분자 여부
+  unread_count bigint
+) 
+LANGUAGE SQL 
+SECURITY DEFINER 
+SET search_path = public 
+AS $$ 
+  WITH messages_with_date AS (
+    SELECT 
+      m.message_id,
+      m.sent_at,
+      m.sender_id,
+      (m.sent_at AT TIME ZONE p_timezone)::date AS message_date,
+      ROW_NUMBER() OVER (
+        PARTITION BY (m.sent_at AT TIME ZONE p_timezone)::date 
+        ORDER BY m.sent_at ASC
+      ) AS date_row_num
+    FROM messages m
+    WHERE m.room_id = p_room_id
+    ORDER BY m.sent_at DESC
+    LIMIT p_limit OFFSET p_offset
+  ),
+  messages_with_unread AS (
+    SELECT  
+      mwd.message_id,
+      mwd.sent_at,
+      mwd.sender_id,
+      mwd.message_date,
+      mwd.date_row_num,
+      COUNT(crm.user_id) FILTER ( 
+        WHERE crm.user_id IS DISTINCT FROM mwd.sender_id::text 
+          AND (lrm.last_read_at IS NULL OR lrm.last_read_at < mwd.sent_at) 
+      ) AS unread_count
+    FROM messages_with_date mwd
+    CROSS JOIN chat_room_members crm
+    LEFT JOIN last_read_messages lrm 
+      ON lrm.room_id = crm.room_id 
+     AND lrm.user_id = crm.user_id 
+    WHERE crm.room_id = p_room_id
+    GROUP BY 
+      mwd.message_id, 
+      mwd.sent_at, 
+      mwd.sender_id, 
+      mwd.message_date,
+      mwd.date_row_num
+  )
+  SELECT 
+    message_id,
+    sent_at,
+    sender_id,
+    message_date,
+    (date_row_num = 1) AS is_date_separator,  -- 각 날짜의 첫 메시지만 true
+    unread_count
+  FROM messages_with_unread
+  ORDER BY sent_at DESC;
+$$;

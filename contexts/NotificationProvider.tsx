@@ -2,6 +2,10 @@
 2025-10-03 12:53:40
 Just added deepLink handling to previouse PushTokenProvider.tsx
 
+Skip Supabase update when:
+- If the push_token is cached
+
+
 */
 // /app/contexts/NotificationProvider.tsx
 import { registerForPushNotificationsAsync } from "@/utils/registerForPushNotificationsAsync";

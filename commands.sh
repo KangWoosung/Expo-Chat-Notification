@@ -124,3 +124,6 @@ npx expo install @react-native-community/checkbox
 
 ## Linking
 npx expo install expo-linking
+
+## NetInfo
+npx expo install @react-native-community/netinfo

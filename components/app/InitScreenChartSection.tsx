@@ -83,7 +83,6 @@ const InitScreenChartSection = ({ className }: InitScreenChartSectionProps) => {
   );
   const [storageUsageGlosary, setStorageUsageGlosary] = useState("");
   const [fileUsageGlosary, setFileUsageGlosary] = useState("");
-  const [fileUsage, setFileUsage] = useState(0);
   const { data: storageUsageData } = useStorageUsage();
   const [storageAmpleState, setStorageAmpleState] = useState("green");
   const [fileAmpleState, setFileAmpleState] = useState("green");
@@ -140,9 +139,8 @@ const InitScreenChartSection = ({ className }: InitScreenChartSectionProps) => {
       }
     );
     console.log("updatedFileUsageData", updatedFileUsageData);
-    const storageUsagePercentage = Math.round(
-      ((storageUsage?.storageUsage || 0) * 100) / FILE_UPLOAD_LIMIT
-    );
+    const storageUsagePercentage =
+      Math.round((storageUsage?.storageUsage || 0) / FILE_UPLOAD_LIMIT) / 100;
     console.log("storageUsagePercentage", storageUsagePercentage);
     if (storageUsagePercentage > 80) {
       setStorageAmpleState("red");
@@ -156,8 +154,7 @@ const InitScreenChartSection = ({ className }: InitScreenChartSectionProps) => {
 
     setStorageUsageGlosary(
       `${
-        Math.round(((storageUsage?.storageUsage || 0) / 1024 / 1024) * 100) /
-        100
+        Math.round((storageUsage?.storageUsage || 0) / 1024 / 1024) / 100
       }MB / ${Math.round((FILE_UPLOAD_LIMIT / 1024 / 1024) * 100) / 100}MB`
     );
 
@@ -172,10 +169,10 @@ const InitScreenChartSection = ({ className }: InitScreenChartSectionProps) => {
     } else {
       setFileAmpleState("green");
     }
-    const fileUsageGlosary = `${fileUsage}/${FILE_UPLOAD_COUNT_LIMIT} (${fileUsagePercentage}%)`;
+    const fileUsageGlosary = `${fileUsage}/${FILE_UPLOAD_COUNT_LIMIT} (${Math.round((fileUsagePercentage * 100) / 100)}%)`;
+
     setFileUsageGlosary(fileUsageGlosary);
-    setFileUsage(fileUsage); // TODO: Add fileUsage state if needed
-  }, [storageUsage]);
+  }, [storageUsage]); // eslint-disable-line react-hooks/exhaustive-deps
 
   return (
     <View
@@ -210,7 +207,13 @@ const InitScreenChartSection = ({ className }: InitScreenChartSectionProps) => {
             </Text>
             <View className="flex items-center justify-center">
               <BadgeWithIcon
-                className={`bg-${storageAmpleState}-600 border-0 ml-auto`}
+                className={`border-0 ml-auto rounded-full shadow-sm ${
+                  storageAmpleState === "red"
+                    ? "bg-red-600"
+                    : storageAmpleState === "yellow"
+                      ? "bg-yellow-600"
+                      : "bg-green-600"
+                }`}
                 dot
                 dotSize={14}
                 label={"0"}
@@ -267,7 +270,13 @@ const InitScreenChartSection = ({ className }: InitScreenChartSectionProps) => {
             </Text>
             <View className="flex items-center justify-center">
               <BadgeWithIcon
-                className={`bg-${fileAmpleState}-600 border-0 ml-auto`}
+                className={`border-0 ml-auto rounded-full shadow-sm ${
+                  fileAmpleState === "red"
+                    ? "bg-red-600"
+                    : fileAmpleState === "yellow"
+                      ? "bg-yellow-600"
+                      : "bg-green-600"
+                }`}
                 dot
                 dotSize={14}
                 label={"0"}

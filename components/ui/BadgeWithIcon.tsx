@@ -71,7 +71,7 @@ const BadgeWithIcon = ({
         onPress={onPress}
         accessibilityRole={pressable ? "button" : undefined}
         accessibilityLabel={accessibilityLabel ?? "dot badge"}
-        className={cn(DEFAULT_BADGE_WITH_ICON_CLASSNAME, className)}
+        className={cn(className)}
         style={{ width: dotSize, height: dotSize }}
         {...rest}
       />

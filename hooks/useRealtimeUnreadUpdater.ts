@@ -1,9 +1,16 @@
 /*
+2025-10-14 11:08:41
+
+Not used anymore
+Realtime Updater Code is integrated into ChatRoomsProvider
+
+
 2025-10-04 02:15:32
 
+This hook is not used in codebase yet.
 
 
-*/
+
 
 // /hooks/useRealtimeUnreadUpdater.ts
 import { useEffect, useRef } from "react";
@@ -115,3 +122,4 @@ export function useRealtimeUnreadUpdater() {
     };
   }, [supabase, user?.id]);
 }
+*/

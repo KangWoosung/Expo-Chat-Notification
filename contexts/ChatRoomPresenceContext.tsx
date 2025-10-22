@@ -12,18 +12,18 @@ leaveRoom:
 - delete from users_in_room table
 - stop heartbeat interval
 
-역할: "채팅룸 생명주기 관리"
+Role: "Manage chat room lifecycle"
 
 enterRoom():
-  ✅ users_in_room 테이블에 등록
-  ✅ last_read_messages 업데이트 (읽음 처리)
-  ✅ 캐시 Optimistic Update (-1)
-  ✅ Heartbeat 시작
+  ✅ register in users_in_room table
+  ✅ update last_read_messages (read processing)
+  ✅ Optimistic Update (-1)
+  ✅ start heartbeat
 
 leaveRoom():
-  ✅ users_in_room에서 제거
-  ✅ 캐시 제거 (fresh start)
-  ✅ Heartbeat 정지
+  ✅ remove from users_in_room
+  ✅ remove the cache (fresh start)
+  ✅ stop heartbeat
 
 
 */
@@ -82,7 +82,7 @@ export const ChatRoomPresenceProvider = ({
         heartbeatRef.current = null;
       }
 
-      // ✅ 1. Optimistic Update: 채팅룸 목록의 unread count를 0으로
+      // ✅ 1. Optimistic Update: set chatRoomsStore unread count to 0
       queryClient.setQueryData(
         myChatRoomsKeys.user(user.id),
         (oldData: any) => {
@@ -92,18 +92,18 @@ export const ChatRoomPresenceProvider = ({
             ...oldData,
             unreadCounts: {
               ...oldData.unreadCounts,
-              [roomId]: 0, // 해당 룸을 0으로
+              [roomId]: 0, // set the unread count of the room to 0
             },
           };
         }
       );
 
-      // ✅ 2. 채팅룸 내부 캐시 제거: 다음 입장 시 fresh data fetch
+      // ✅ 2. remove the room's internal cache: fresh data fetch when entering the room again
       queryClient.removeQueries({
         queryKey: paginatedMessagesKeys.room(roomId),
       });
 
-      // ✅ 3. 채팅룸 목록 캐시 invalidate: DB 값으로 검증
+      // ✅ 3. invalidate the room list cache: validate with DB values
       queryClient.invalidateQueries({
         queryKey: myChatRoomsKeys.user(user.id),
       });
@@ -148,8 +148,8 @@ export const ChatRoomPresenceProvider = ({
         last_read_at: new Date().toISOString(),
       });
 
-      // ✅ last_read_messages 업데이트 후 정확한 unread count를 다시 가져오기
-      // Optimistic Update 대신 invalidate를 사용하여 DB의 정확한 값을 표시
+      // ✅ get the exact unread count after updating last_read_messages
+      // instead of Optimistic Update, use invalidate to show the exact value from the DB
       queryClient.invalidateQueries({
         queryKey: paginatedMessagesKeys.room(roomId),
       });

@@ -1,13 +1,15 @@
 /*
 2025-07-12 22:59:10
 
-Utility function for registering and caching push notifications.
+Utility function for registering and caching push_token for push notifications.
 
 1. Set up the notification channel for Android
 2. Check if the device is a physical device
 3. Check if the user has granted permission to receive push notifications
 4. Get the project ID from the Expo config
-5. Get the push token for the project
+5. Get the push_token from the Expo Push Notification
+6. Cache the push_token
+7. Return the push_token and whether it is cached
 
 */
 import AsyncStorage from "@react-native-async-storage/async-storage";

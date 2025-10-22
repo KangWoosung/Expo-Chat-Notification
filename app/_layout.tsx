@@ -25,19 +25,8 @@ import {
 import { GlobalBottomSheet } from "@/components/modals/GlobalBottomSheet";
 import { queryClient } from "@/lib/queryClient";
 import { NotificationProvider } from "@/contexts/NotificationProvider";
-import UnreadMessagesCountProvider from "@/contexts/UnreadMessagesCountProvider";
-
-// QueryClient 인스턴스 생성
-// const queryClient = new QueryClient({
-//   defaultOptions: {
-//     queries: {
-//       staleTime: 5 * 60 * 1000, // 5분간 데이터를 fresh로 간주
-//       gcTime: 10 * 60 * 1000, // 10분간 캐시 유지
-//       retry: 2,
-//       refetchOnWindowFocus: false,
-//     },
-//   },
-// });
+// import UnreadMessagesCountProvider from "@/contexts/UnreadMessagesCountProvider";
+import { ChatRoomsProvider } from "@/contexts/ChatRoomsProvider";
 
 // Global Dealing with Bottom Sheet
 // export const globalSheetRef = { current: null as BottomSheetModal | null };
@@ -95,7 +84,8 @@ export default function RootLayout() {
         <QueryClientProvider client={queryClient}>
           <SupabaseProvider>
             <NotificationProvider>
-              <UnreadMessagesCountProvider>
+              {/* <UnreadMessagesCountProvider> */}
+              <ChatRoomsProvider>
                 <GestureHandlerRootView style={{ flex: 1 }}>
                   <NativewindThemeProvider>
                     <SafeAreaProvider>
@@ -139,7 +129,8 @@ export default function RootLayout() {
                     </SafeAreaProvider>
                   </NativewindThemeProvider>
                 </GestureHandlerRootView>
-              </UnreadMessagesCountProvider>
+              </ChatRoomsProvider>
+              {/* </UnreadMessagesCountProvider> */}
             </NotificationProvider>
           </SupabaseProvider>
         </QueryClientProvider>
